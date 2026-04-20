@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>김동성 교수 연구 성과 포털</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.2.0/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --primary:       #0d3b72;
+      --primary-light: #1a5ca8;
+      --bg:            #f0f4f8;
+      --white:         #ffffff;
+      --text:          #1e293b;
+      --text-light:    #64748b;
+      --border:        #e2e8f0;
+      --shadow:        0 2px 10px rgba(13,59,114,0.09);
+      --c-sci:    #1d4ed8;
+      --c-scie:   #4338ca;
+      --c-esci:   #7e22ce;
+      --c-scopus: #c2410c;
+      --c-other:  #9ca3af;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Malgun Gothic', '맑은 고딕', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #0b2e5e 0%, var(--primary-light) 100%);
+      color: white;
+      padding: 44px 24px 34px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: ''; position: absolute; top:-60px; right:-60px;
+      width:280px; height:280px; background:rgba(255,255,255,.05); border-radius:50%;
+      pointer-events:none;
+    }
+    .header::after {
+      content: ''; position: absolute; bottom:-80px; left:-40px;
+      width:220px; height:220px; background:rgba(255,255,255,.04); border-radius:50%;
+      pointer-events:none;
+    }
+    .header h1 { font-size:2rem; font-weight:700; letter-spacing:-.5px; margin-bottom:6px; }
+    .header p  { font-size:.95rem; opacity:.80; }
+
+    .stats { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:26px; }
+    .stat-card {
+      background:rgba(255,255,255,.13); backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,.22); border-radius:14px;
+      padding:12px 20px; text-align:center; min-width:106px;
+      cursor:pointer; transition:background .18s, transform .15s;
+      user-select:none;
+    }
+    .stat-card:hover  { background:rgba(255,255,255,.25); transform:translateY(-2px); }
+    .stat-card.active { background:rgba(255,255,255,.35); border-color:rgba(255,255,255,.6); }
+    .home-btn { font-size:1rem; font-weight:700; line-height:1; padding:10px 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .stat-card .num   { font-size:1.6rem; font-weight:700; display:block; }
+    .stat-card .label { font-size:.73rem; opacity:.85; margin-top:2px; }
+
+    /* ── Main ── */
+    .main { max-width:1100px; margin:0 auto; padding:22px 16px 60px; }
+
+    /* ── Tabs ── */
+    .tabs {
+      display:flex; gap:4px; background:var(--white); border-radius:14px;
+      padding:6px; box-shadow:var(--shadow); overflow-x:auto; margin-bottom:16px;
+      scrollbar-width:none;
+    }
+    .tabs::-webkit-scrollbar { display:none; }
+    .tab-btn {
+      flex:1; min-width:110px; padding:9px 12px; border:none;
+      background:transparent; border-radius:9px; font-size:.87rem;
+      font-weight:500; color:var(--text-light); cursor:pointer;
+      transition:all .18s; white-space:nowrap;
+    }
+    .tab-btn.active { background:var(--primary); color:#fff; }
+    .tab-btn:hover:not(.active) { background:var(--bg); color:var(--text); }
+    .tab-count {
+      display:inline-block; background:rgba(255,255,255,.25);
+      border-radius:10px; padding:1px 6px; font-size:.70rem;
+      margin-left:4px; vertical-align:middle;
+    }
+    .tab-btn:not(.active) .tab-count { background:#e8edf3; color:var(--text-light); }
+
+    /* ── Filter bar ── */
+    .filter-bar { display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; align-items:center; }
+    .filter-select, .search-input {
+      padding:9px 13px; border:1.5px solid var(--border); border-radius:9px;
+      font-size:.86rem; background:var(--white); color:var(--text);
+      outline:none; transition:border-color .15s; cursor:pointer;
+    }
+    .search-input { flex:1; min-width:200px; cursor:text; padding-right:36px; }
+    .search-input:focus, .filter-select:focus { border-color:var(--primary-light); }
+
+    /* Tab-specific filters (hidden by default) */
+    .journal-filter { display:none; }
+    .patent-filter  { display:none; }
+
+    /* ── Export button ── */
+    .export-btn {
+      padding:9px 14px; border:1.5px solid var(--primary-light); border-radius:9px;
+      font-size:.86rem; background:var(--white); color:var(--primary);
+      cursor:pointer; transition:all .15s; white-space:nowrap; font-weight:500;
+    }
+    .export-btn:hover { background:var(--primary); color:white; border-color:var(--primary); }
+
+    /* ── Search wrapper with clear button ── */
+    .search-wrap { position:relative; flex:1; min-width:200px; display:flex; }
+    .search-wrap .search-input { width:100%; }
+    .search-clear {
+      position:absolute; right:10px; top:50%; transform:translateY(-50%);
+      background:none; border:none; cursor:pointer; padding:2px 4px;
+      color:#aab; font-size:1rem; line-height:1; border-radius:50%;
+      display:none; transition:color .15s;
+    }
+    .search-clear:hover { color:#666; }
+
+    /* ── Result info ── */
+    .result-info {
+      font-size:.81rem; color:var(--text-light); margin-bottom:10px;
+      display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    }
+
+    /* ── List container ── */
+    .list-view { display:flex; flex-direction:column; gap:8px; }
+
+    /* ── List item ── */
+    .list-item {
+      display:flex; align-items:stretch; gap:0;
+      background:var(--white); border-radius:10px;
+      box-shadow:var(--shadow); border:1px solid var(--border);
+      border-left:4px solid var(--c-other);
+      overflow:hidden; transition:box-shadow .15s, transform .15s;
+    }
+    .list-item:hover { box-shadow:0 5px 20px rgba(13,59,114,.13); transform:translateX(2px); }
+
+    .list-rank {
+      display:flex; align-items:center; justify-content:center;
+      min-width:40px; padding:0 4px;
+      font-size:.78rem; font-weight:700; color:#b0bec5;
+      border-right:1px solid var(--border); background:#fafbfc; flex-shrink:0;
+    }
+    .list-main { flex:1; padding:14px 16px; min-width:0; }
+    .list-badges { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:7px; }
+    .badge {
+      display:inline-block; padding:2px 8px; border-radius:10px;
+      font-size:.68rem; font-weight:700; letter-spacing:.3px;
+    }
+    .badge-sci      { background:#dbeafe; color:#1d4ed8; }
+    .badge-scie     { background:#e0e7ff; color:#4338ca; }
+    .badge-esci     { background:#fae8ff; color:#7e22ce; }
+    .badge-scopus   { background:#fff7ed; color:#c2410c; }
+    .badge-other    { background:#f3f4f6; color:#6b7280; }
+    .badge-intl     { background:#d1fae5; color:#065f46; }
+    .badge-domestic { background:#fef9c3; color:#78350f; }
+    .badge-registered { background:#d1fae5; color:#065f46; }
+    .badge-applied  { background:#fef3c7; color:#92400e; }
+    .badge-foreign  { background:#ede9fe; color:#5b21b6; }
+    .badge-tech     { background:#fce7f3; color:#9d174d; }
+    .badge-award    { background:#fef3c7; color:#78350f; }
+    .badge-year     { background:#f1f5f9; color:#475569; }
+    .list-title {
+      font-size:.93rem; font-weight:600; line-height:1.5;
+      color:var(--text); margin-bottom:6px;
+    }
+    .list-meta {
+      font-size:.79rem; color:var(--text-light);
+      line-height:1.6; margin-top:3px;
+    }
+    .list-meta strong { color:var(--text); font-weight:500; }
+    .list-meta + .list-meta { margin-top:1px; }
+    .doi-link { display:inline; font-size:.78rem; color:var(--primary-light); text-decoration:none; }
+    .doi-link:hover { text-decoration:underline; }
+
+    .list-if {
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      min-width:68px; padding:12px 10px; flex-shrink:0;
+      border-left:1px solid var(--border); background:#fafbfc;
+    }
+    .if-value { font-size:1.15rem; font-weight:700; color:var(--primary); line-height:1; }
+    .if-label { font-size:.65rem; color:var(--text-light); margin-top:3px; letter-spacing:.4px; }
+    .if-none  { font-size:.70rem; color:#c5cdd8; }
+
+    /* ── Empty state ── */
+    .empty-state { text-align:center; padding:60px 20px; color:var(--text-light); }
+    .empty-state .icon { font-size:2.5rem; margin-bottom:10px; }
+
+    /* ── Loading ── */
+    .loading-overlay {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(240,244,248,.95);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      z-index:1000;
+    }
+    .spinner {
+      width:44px; height:44px; border:4px solid #d1dff0;
+      border-top-color:var(--primary); border-radius:50%;
+      animation:spin .8s linear infinite; margin-bottom:14px;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .loading-text { color:var(--text-light); font-size:.9rem; }
+
+    /* ── Overview Section ── */
+    .ov-header { text-align:center; padding:28px 0 22px; }
+    .ov-header h2 { font-size:1.4rem; font-weight:700; color:var(--text); margin-bottom:8px; }
+    .ov-header p  { font-size:.9rem; color:var(--text-light); }
+
+    .ov-summary {
+      display:flex; gap:12px; justify-content:center; flex-wrap:wrap;
+      margin-bottom:24px;
+    }
+    .ov-tile {
+      background:var(--white); border-radius:12px;
+      box-shadow:var(--shadow); border:1px solid var(--border);
+      padding:16px 22px; text-align:center; min-width:120px;
+      cursor:pointer; transition:transform .15s, box-shadow .15s;
+    }
+    .ov-tile:hover { transform:translateY(-3px); box-shadow:0 6px 20px rgba(13,59,114,.13); }
+    .ov-tile .ot-num   { font-size:1.8rem; font-weight:700; color:var(--primary); display:block; }
+    .ov-tile .ot-label { font-size:.75rem; color:var(--text-light); margin-top:4px; }
+
+    .chart-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap:18px;
+    }
+    .chart-card {
+      background:var(--white); border-radius:12px;
+      box-shadow:var(--shadow); border:1px solid var(--border);
+      padding:22px 20px;
+    }
+    .chart-card-title {
+      font-size:.92rem; font-weight:600; color:var(--text);
+      text-align:center; margin-bottom:18px;
+      padding-bottom:12px; border-bottom:1px solid var(--border);
+    }
+    .chart-wrap { position:relative; max-width:260px; margin:0 auto; }
+
+    /* ── Profile Section ── */
+    .prof-banner {
+      background: linear-gradient(135deg, #0b2e5e 0%, var(--primary-light) 100%);
+      color: white; border-radius: 14px; padding: 28px 32px;
+      display: flex; align-items: center; gap: 28px; margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+    .prof-avatar {
+      width: 86px; height: 86px; border-radius: 50%;
+      background: rgba(255,255,255,.20); border: 2px solid rgba(255,255,255,.35);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; flex-shrink: 0;
+    }
+    .prof-name { font-size: 1.6rem; font-weight: 700; margin-bottom: 6px; }
+    .prof-sub  { font-size: .88rem; opacity: .85; line-height: 1.8; }
+    .prof-sub span { display: inline-block; margin-right: 14px; }
+
+    .career-card {
+      background: var(--white); border-radius: 14px;
+      box-shadow: var(--shadow); border: 1px solid var(--border);
+      overflow: hidden;
+    }
+    .career-card-title {
+      padding: 15px 24px; font-size: .98rem; font-weight: 700;
+      color: var(--text); border-bottom: 1px solid var(--border);
+      background: #f8fafc; display: flex; align-items: center; gap: 8px;
+      justify-content: space-between;
+    }
+    .hwpx-load-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 8px; font-size: .78rem;
+      font-weight: 600; cursor: pointer; border: 1.5px solid var(--primary-light);
+      color: var(--primary); background: var(--white); transition: all .15s;
+      white-space: nowrap;
+    }
+    .hwpx-load-btn:hover { background: var(--primary); color: #fff; }
+    .hwpx-load-btn.loaded { border-color: #059669; color: #059669; }
+    .hwpx-load-btn.loaded:hover { background: #059669; color: #fff; }
+    .hwpx-status {
+      font-size: .76rem; color: var(--text-light); padding: 6px 24px 0;
+      display: none;
+    }
+    .hwpx-status.visible { display: block; }
+    .career-head {
+      display: grid; grid-template-columns: 158px 1fr 160px 180px;
+      padding: 9px 24px; background: #f1f5f9;
+      font-size: .76rem; font-weight: 600; color: var(--text-light);
+      border-bottom: 2px solid var(--border); letter-spacing: .3px;
+    }
+    .career-row {
+      display: grid; grid-template-columns: 158px 1fr 160px 180px;
+      padding: 13px 24px; border-bottom: 1px solid #f1f5f9;
+      font-size: .84rem; align-items: start; transition: background .12s;
+      line-height: 1.55;
+    }
+    .career-row:hover { background: #f8fbff; }
+    .career-row:last-child { border-bottom: none; }
+    .cr-period { font-weight: 600; color: var(--primary); font-size: .80rem; padding-right: 8px; }
+    .cr-period.ongoing { color: #059669; }
+    .cr-org  { color: var(--text); }
+    .cr-pos  { color: var(--text); font-weight: 500; }
+    .cr-note { color: var(--text-light); font-size: .78rem; }
+
+    /* ── Footer ── */
+    .footer {
+      text-align:center; padding:22px; font-size:.76rem;
+      color:var(--text-light); border-top:1px solid var(--border); margin-top:18px;
+    }
+
+    /* ── 탭 외부 래퍼 (페이드 효과용) ── */
+    .tabs-outer { position:relative; margin-bottom:0; }
+    .tabs-outer .tabs { margin-bottom:0; border-radius:14px 14px 0 0; }
+    .tabs-outer::after {
+      content:''; position:absolute; right:0; top:0; bottom:0; width:48px;
+      background:linear-gradient(to right, transparent, #ffffff);
+      pointer-events:none; border-radius:0 14px 0 0;
+      display:none;
+    }
+
+    /* 탭 스크롤 힌트 (기본 숨김) */
+    .tab-scroll-hint {
+      display:none; text-align:center; font-size:.62rem; color:#94a3b8;
+      padding:4px 0 6px; background:var(--white);
+      border-radius:0 0 14px 14px; margin-bottom:14px;
+      box-shadow:var(--shadow);
+    }
+    .tab-scroll-hint span {
+      background:#f1f5f9; border-radius:6px; padding:2px 10px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       모바일 반응형 (768px 이하)
+    ═══════════════════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+
+      /* ── 헤더 ── */
+      .header { padding:22px 12px 16px; }
+      .header h1 { font-size:1.3rem; }
+      .header p  { font-size:.75rem; }
+
+      /* ── 통계 카드: 5개 한 줄 ── */
+      .stats { flex-wrap:nowrap; gap:5px; margin-top:14px; }
+      .stat-card { flex:1; min-width:0; padding:8px 4px; border-radius:10px; }
+      .stat-card .num   { font-size:1.1rem; }
+      .stat-card .label { font-size:.52rem; line-height:1.3; }
+
+      /* ── 탭 바: 고정폭 + 가로 스크롤 ── */
+      .tabs-outer::after { display:block; }
+      .tab-scroll-hint   { display:block; }
+      .tabs { border-radius:14px 14px 0 0; }
+      .tab-btn {
+        flex:none; flex-shrink:0; min-width:auto;
+        padding:8px 13px; font-size:.80rem;
+      }
+
+      /* ── 메인 패딩 ── */
+      .main { padding:14px 10px 50px; }
+
+      /* ── 필터바: 세로 쌓기 ── */
+      .filter-bar { flex-direction:column; gap:7px; }
+      .search-wrap { min-width:100%; }
+      .filter-select, .search-input { width:100%; min-width:0; }
+      .export-btn { width:100%; text-align:center; }
+
+      /* ── 리스트 ── */
+      .list-main  { padding:11px 13px; }
+      .list-title { font-size:.86rem; }
+      .list-meta  { font-size:.75rem; }
+      .list-if {
+        min-width:56px; padding:10px 8px;
+      }
+      .if-value { font-size:1rem; }
+
+      /* ── 성과 개요 헤더 ── */
+      .ov-header { padding:18px 0 14px; }
+      .ov-header h2 { font-size:1.15rem; }
+
+      /* ── 성과 개요 타일: 5개 한 줄 ── */
+      .ov-summary { flex-wrap:nowrap; gap:6px; margin-bottom:16px; }
+      .ov-tile {
+        flex:1; min-width:0; padding:10px 4px; border-radius:10px;
+      }
+      .ov-tile .ot-num   { font-size:1.15rem; }
+      .ov-tile .ot-label { font-size:.50rem; line-height:1.4; margin-top:3px; }
+
+      /* ── 차트: 1열(전체) + 2열(저널/특허) ── */
+      .chart-grid {
+        grid-template-columns:1fr 1fr;
+        gap:10px;
+      }
+      .chart-card:first-child { grid-column:1 / -1; }
+      .chart-card { padding:14px 12px; }
+      .chart-card-title { font-size:.80rem; margin-bottom:12px; padding-bottom:8px; }
+      .chart-wrap { max-width:200px; }
+
+      /* ── 프로필 배너 ── */
+      .prof-banner {
+        flex-direction:column; text-align:center;
+        padding:20px 16px; gap:14px;
+      }
+      .prof-sub span { display:block; margin-right:0; margin-bottom:3px; }
+
+      /* ── 경력사항: 카드형 레이아웃 ── */
+      .career-head { display:none; }
+      .career-card-title { padding:12px 16px; font-size:.88rem; }
+      .career-row {
+        grid-template-columns:1fr;
+        gap:0; padding:12px 16px;
+        border-bottom:1px solid var(--border);
+      }
+      /* 기간: 컬러 도트 + 날짜 */
+      .cr-period {
+        font-size:.73rem; padding-right:0; margin-bottom:4px;
+        display:flex; align-items:center; gap:6px;
+      }
+      .cr-period::before {
+        content:''; display:inline-block;
+        width:7px; height:7px; border-radius:50%;
+        background:currentColor; flex-shrink:0;
+      }
+      /* 기관명: 굵게, 들여쓰기 */
+      .cr-org {
+        font-size:.86rem; font-weight:600;
+        padding:2px 0 6px 13px; line-height:1.45;
+      }
+      /* 직위: 파란 배지 */
+      .cr-pos {
+        display:inline-block;
+        background:#dbeafe; color:#1d4ed8;
+        border-radius:6px; font-size:.70rem; font-weight:600;
+        padding:2px 9px; margin-left:13px;
+      }
+      /* 비고: 작은 텍스트 */
+      .cr-note {
+        font-size:.68rem; color:var(--text-light);
+        padding:4px 0 0 13px;
+        display:block;
+      }
+      .cr-note:empty { display:none; }
+    }
+
+    /* 480px 이하 추가 최적화 */
+    @media (max-width: 480px) {
+      .header h1 { font-size:1.15rem; }
+      .stat-card .num   { font-size:1rem; }
+      .stat-card .label { font-size:.48rem; }
+      .ov-tile .ot-num   { font-size:1rem; }
+      .ov-tile .ot-label { font-size:.46rem; }
+      .tab-btn { padding:7px 10px; font-size:.74rem; }
+      .chart-wrap { max-width:160px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Loading ── -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">구글 시트에서 데이터를 불러오는 중…</div>
+  <button id="loadingRetryBtn"
+    onclick="forceFinishLoading()"
+    style="display:none; margin-top:16px; padding:10px 24px; border-radius:10px;
+           border:1.5px solid var(--primary-light); background:var(--white);
+           color:var(--primary); font-size:.88rem; font-weight:600; cursor:pointer;">
+    데이터 없이 열기
+  </button>
+</div>
+
+<!-- ── Header ── -->
+<div class="header">
+  <h1>김동성 교수님 연구 성과</h1>
+  <div class="stats">
+    <div class="stat-card home-btn" onclick="switchTab('overview')" title="홈 — 성과 개요"><span class="label" style="font-size:.85rem;font-weight:700;opacity:1;">홈</span></div>
+    <div class="stat-card" data-tab="journal"    onclick="switchTab('journal')"   ><span class="num" id="stat-journal">-</span><span class="label">논문 (저널)</span></div>
+    <div class="stat-card" data-tab="conference"  onclick="switchTab('conference')" ><span class="num" id="stat-conference">-</span><span class="label">논문 (학술대회)</span></div>
+    <div class="stat-card" data-tab="patent"      onclick="switchTab('patent')"     ><span class="num" id="stat-patent">-</span><span class="label">특허</span></div>
+    <div class="stat-card" data-tab="transfer"    onclick="switchTab('transfer')"   ><span class="num" id="stat-transfer">-</span><span class="label">기술이전</span></div>
+    <div class="stat-card" data-tab="award"       onclick="switchTab('award')"      ><span class="num" id="stat-award">-</span><span class="label">수상</span></div>
+  </div>
+</div>
+
+<!-- ── Main ── -->
+<div class="main">
+
+  <!-- Tabs -->
+  <div class="tabs-outer">
+    <div class="tabs">
+      <button class="tab-btn"        data-tab="profile"    onclick="switchTab('profile')">👤 프로필</button>
+      <button class="tab-btn active" data-tab="overview"   onclick="switchTab('overview')">📊 성과 개요</button>
+      <button class="tab-btn"        data-tab="journal"    onclick="switchTab('journal')">논문 (저널)<span class="tab-count" id="tc-journal">-</span></button>
+      <button class="tab-btn"        data-tab="conference" onclick="switchTab('conference')">논문 (학술대회)<span class="tab-count" id="tc-conference">-</span></button>
+      <button class="tab-btn"        data-tab="patent"     onclick="switchTab('patent')">특허<span class="tab-count" id="tc-patent">-</span></button>
+      <button class="tab-btn"        data-tab="transfer"   onclick="switchTab('transfer')">기술이전<span class="tab-count" id="tc-transfer">-</span></button>
+      <button class="tab-btn"        data-tab="award"      onclick="switchTab('award')">수상<span class="tab-count" id="tc-award">-</span></button>
+    </div>
+  </div>
+  <div class="tab-scroll-hint"><span>← 탭 좌우 스크롤 →</span></div>
+
+  <!-- Filters -->
+  <div class="filter-bar" id="filterBar">
+    <div class="search-wrap">
+      <input type="text" class="search-input" id="searchInput"
+             placeholder="🔍  논문명, 저자, 학술지, 특허명 등 검색…"
+             oninput="onSearchInput()">
+      <button class="search-clear" id="searchClear" onclick="clearSearch()" title="검색어 지우기">✕</button>
+    </div>
+    <select class="filter-select" id="yearSelect" onchange="saveYearAndFilter()">
+      <option value="">전체 연도</option>
+    </select>
+    <!-- Journal-only filters -->
+    <select class="filter-select journal-filter" id="sciSelect" onchange="applyFilters()">
+      <option value="">전체 구분</option>
+      <option value="SCIE">SCIE</option>
+      <option value="ESCI">ESCI</option>
+      <option value="SCOPUS">SCOPUS</option>
+      <option value="비SCI">비SCI</option>
+    </select>
+    <select class="filter-select journal-filter" id="ifSelect" onchange="applyFilters()">
+      <option value="">전체 IF</option>
+      <option value="10+">IF 10 이상</option>
+      <option value="5+">IF 5 이상</option>
+      <option value="3+">IF 3 이상</option>
+      <option value="1+">IF 1 이상</option>
+      <option value="1-">IF 1 미만</option>
+      <option value="none">IF 없음</option>
+    </select>
+    <!-- Patent-only filters -->
+    <select class="filter-select patent-filter" id="patentRegSelect" onchange="applyFilters()">
+      <option value="">전체 (등록/출원)</option>
+      <option value="등록">등록</option>
+      <option value="출원">출원</option>
+    </select>
+    <select class="filter-select patent-filter" id="patentDomSelect" onchange="applyFilters()">
+      <option value="">전체 (국내/해외)</option>
+      <option value="국내">국내</option>
+      <option value="해외">해외</option>
+    </select>
+    <!-- Export button -->
+    <button class="export-btn" onclick="exportCSV()">📥 내보내기</button>
+  </div>
+
+  <div class="result-info" id="resultInfo"></div>
+  <div class="list-view"   id="listView"></div>
+
+  <!-- Profile Section (hidden by default) -->
+  <div id="profileSection" style="display:none;">
+    <div class="prof-banner">
+      <div class="prof-avatar">👨‍🏫</div>
+      <div>
+        <div class="prof-name">김동성 (Dong-Seong Kim)</div>
+        <div class="prof-sub">
+          <span>🏫 국립금오공과대학교 전자공학부 교수 / ICT융합특성화연구센터장</span><br>
+          <span>🌐 <a href="https://sites.google.com/view/profdskim/home?authuser=0" target="_blank" style="color:rgba(255,255,255,.9);text-decoration:underline;text-underline-offset:2px;">홈페이지</a></span>
+          <span>📧 dskim@kumoh.ac.kr</span>
+          <span>📞 054-478-7471</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="career-card">
+      <div class="career-card-title">
+        <span>📋 경력사항</span>
+        <label class="hwpx-load-btn" id="hwpxLoadBtn" title="HWPX 파일을 선택하면 경력사항이 자동으로 업데이트됩니다">
+          📂 HWPX 파일로 업데이트
+          <input type="file" id="hwpxInput" accept=".hwpx,.hwp" style="display:none"
+                 onchange="handleHwpxFile(this.files[0])">
+        </label>
+      </div>
+      <div class="hwpx-status" id="hwpxStatus"></div>
+      <div class="career-head">
+        <div>기간</div><div>기관명</div><div>직위(급)</div><div>비고</div>
+      </div>
+      <div id="careerTableBody">
+        <div class="career-row">
+          <div class="cr-period ongoing">2026.02.~현재</div>
+          <div class="cr-org">K-MOSA 연구센터</div>
+          <div class="cr-pos">연구센터장</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period ongoing">2025.03.~현재</div>
+          <div class="cr-org">Journal of Information Assurance and Security</div>
+          <div class="cr-pos">편집장</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2025.08.~2027.08.</div>
+          <div class="cr-org">국가과학기술연구회(NST) 연구개발전략위원회</div>
+          <div class="cr-pos">자문위원</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2023.10.~2026.03.</div>
+          <div class="cr-org">연구재단 (정보융합단, 국방치안 분야)</div>
+          <div class="cr-pos">기획위원</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2023.10.~2024.10.</div>
+          <div class="cr-org">정보통신기획평가원(IITP) 국방 ICT사업단</div>
+          <div class="cr-pos">기획위원장</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2023.01.~2025.12.</div>
+          <div class="cr-org">한국통신학회 / 민·군IT융합 소사이어티</div>
+          <div class="cr-pos">부회장/회장</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period ongoing">2022.01.~현재</div>
+          <div class="cr-org">㈜엔에스랩</div>
+          <div class="cr-pos">대표이사</div>
+          <div class="cr-note">컴퓨터 소프트웨어 및 블록체인</div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2022.03.~2024.02.</div>
+          <div class="cr-org">금오공과대학교 국방시스템공동연구소</div>
+          <div class="cr-pos">소장</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2021.02.~2022.10.</div>
+          <div class="cr-org">과학기술정보통신부</div>
+          <div class="cr-pos">민간자문위원</div>
+          <div class="cr-note">"이공계 대학 혁신"</div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2019.03.~2022.03.</div>
+          <div class="cr-org">금오공과대학교 산학협력단/연구처</div>
+          <div class="cr-pos">단장/처장</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period ongoing">2017.07.~현재</div>
+          <div class="cr-org">해군함정기술연구소 등</div>
+          <div class="cr-pos">자문위원</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2016.09.~2018.09.</div>
+          <div class="cr-org">국방부 정보화기획국</div>
+          <div class="cr-pos">자문위원</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2015.02.~2019.03.</div>
+          <div class="cr-org">금오공과대학교 KIT융합기술원</div>
+          <div class="cr-pos">원장</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period ongoing">2015.03.~현재</div>
+          <div class="cr-org">IEEE CE VTS and IFAC TC 3.3 등 (Control via Networks)</div>
+          <div class="cr-pos">Committee Member</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2015.03.~2016.02.</div>
+          <div class="cr-org">International Journal of Distributed Sensor Networks, Electronics (MDPI) 등</div>
+          <div class="cr-pos">객원 주편집장 및 편집위원</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period ongoing">2014.07.~현재</div>
+          <div class="cr-org">ICT융합특성화연구센터 (한화시스템 해양연구소 특화 랩 운영)</div>
+          <div class="cr-pos">센터장/총괄책임자</div>
+          <div class="cr-note">그랜드ICT연구센터 · 대학중점연구소</div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period ongoing">2013.~현재</div>
+          <div class="cr-org">WIITC (2012~2018), IEEE ICC (2023~2025), ICMIC (2023~2025), ICTC (2018~2024), ICAIIC (2020~2025), ICUFN (2018~2026) 등</div>
+          <div class="cr-pos">General Chair / Workshop Chair</div>
+          <div class="cr-note">PC/TPC Member</div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2011.03.~2014.02.</div>
+          <div class="cr-org">금오공과대학교 모바일연구소</div>
+          <div class="cr-pos">연구소장</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2007.12.~2009.02.</div>
+          <div class="cr-org">미국 U.C. Davis 전산학부 네트워크 그룹</div>
+          <div class="cr-pos">방문 교수</div>
+          <div class="cr-note">Prof. P. Mohapatra</div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period ongoing">2004.03.~현재</div>
+          <div class="cr-org">금오공과대학교 전자공학부/IT융복합공학과</div>
+          <div class="cr-pos">교수</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">2004.03.~2005.02.</div>
+          <div class="cr-org">미국 코넬대학교 전기 및 컴퓨터 공학부, WNL</div>
+          <div class="cr-pos">방문 학자</div>
+          <div class="cr-note">Prof. Z. J. Haas</div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period ongoing">1998.~현재</div>
+          <div class="cr-org">IEEE and ACM</div>
+          <div class="cr-pos">Senior Member</div>
+          <div class="cr-note"></div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period ongoing">1998.~현재</div>
+          <div class="cr-org">AFCEA, IEIE, KICS, KSII</div>
+          <div class="cr-pos">Life Member</div>
+          <div class="cr-note">통신학회 상임이사/연구회 위원장</div>
+        </div>
+        <div class="career-row">
+          <div class="cr-period">1994.08.~2003.02.</div>
+          <div class="cr-org">서울대학교 제어계측신기술연구센터</div>
+          <div class="cr-pos">전임/책임 연구원</div>
+          <div class="cr-note"></div>
+        </div>
+      </div><!-- /careerTableBody -->
+    </div><!-- /career-card -->
+  </div><!-- /profileSection -->
+
+  <!-- Overview Section (hidden by default) -->
+  <div id="overviewSection" style="display:none;">
+    <div class="ov-header">
+      <h2>📊 연구 성과 개요</h2>
+      <p></p>
+    </div>
+    <div class="ov-summary">
+      <div class="ov-tile" onclick="switchTab('journal')">
+        <span class="ot-num" id="ov-journal">-</span><div class="ot-label">📄 저널 논문</div>
+      </div>
+      <div class="ov-tile" onclick="switchTab('conference')">
+        <span class="ot-num" id="ov-conference">-</span><div class="ot-label">🏛 학술대회</div>
+      </div>
+      <div class="ov-tile" onclick="switchTab('patent')">
+        <span class="ot-num" id="ov-patent">-</span><div class="ot-label">💡 특허</div>
+      </div>
+      <div class="ov-tile" onclick="switchTab('transfer')">
+        <span class="ot-num" id="ov-transfer">-</span><div class="ot-label">🔬 기술이전</div>
+      </div>
+      <div class="ov-tile" onclick="switchTab('award')">
+        <span class="ot-num" id="ov-award">-</span><div class="ot-label">🏆 수상</div>
+      </div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-card-title">전체 성과 분포</div>
+        <div class="chart-wrap"><canvas id="chartTotal"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">저널 논문 학술지 구분</div>
+        <div class="chart-wrap"><canvas id="chartSci"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">특허 구분 (국내/해외 · 등록/출원)</div>
+        <div class="chart-wrap"><canvas id="chartPatent"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">데이터 출처: ICT-CRC 이현주</div>
+</div>
+
+<script>
+/* ─── HWPX 프로필 동적 로딩 ─────────────────────────────────────────────── */
+function handleHwpxFile(file) {
+  if (!file || typeof JSZip === 'undefined') return;
+  var btn    = document.getElementById('hwpxLoadBtn');
+  var status = document.getElementById('hwpxStatus');
+  btn.textContent = '⏳ 파싱 중…';
+  status.className = 'hwpx-status visible';
+  status.textContent = file.name + ' 읽는 중…';
+
+  JSZip.loadAsync(file)
+    .then(function(zip) {
+      var xmlFile = zip.file('Contents/section0.xml');
+      if (!xmlFile) throw new Error('section0.xml not found');
+      return xmlFile.async('string');
+    })
+    .then(function(xmlStr) {
+      var parser = new DOMParser();
+      var xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
+      var rows   = parseHwpxCareerTable(xmlDoc);
+      if (!rows || rows.length === 0) throw new Error('경력사항 테이블을 찾을 수 없습니다.');
+      renderCareerRows(rows);
+      try { localStorage.setItem('careerRows', JSON.stringify(rows)); } catch(e) {}
+      btn.innerHTML = '✅ 업데이트 완료 &nbsp;<small style="font-weight:400">다시 불러오기</small>'
+                    + '<input type="file" id="hwpxInput" accept=".hwpx,.hwp" '
+                    + 'style="display:none" onchange="handleHwpxFile(this.files[0])">';
+      btn.className = 'hwpx-load-btn loaded';
+      status.textContent = '✔ ' + file.name + ' → 경력사항 ' + rows.length + '건 업데이트 완료';
+    })
+    .catch(function(err) {
+      btn.innerHTML = '📂 HWPX 파일로 업데이트'
+                    + '<input type="file" id="hwpxInput" accept=".hwpx,.hwp" '
+                    + 'style="display:none" onchange="handleHwpxFile(this.files[0])">';
+      btn.className = 'hwpx-load-btn';
+      status.textContent = '⚠ 오류: ' + err.message;
+    });
+}
+
+function parseHwpxCareerTable(xmlDoc) {
+  var tables = xmlDoc.getElementsByTagNameNS('*', 'tbl');
+  if (tables.length < 3) return [];
+  var careerTbl = tables[2];
+  var trs = careerTbl.getElementsByTagNameNS('*', 'tr');
+  var rows = [];
+  for (var i = 1; i < trs.length; i++) {
+    var tcs   = trs[i].getElementsByTagNameNS('*', 'tc');
+    var cells = [];
+    for (var j = 0; j < tcs.length; j++) {
+      var tNodes = tcs[j].getElementsByTagNameNS('*', 't');
+      var text = '';
+      for (var k = 0; k < tNodes.length; k++) text += tNodes[k].textContent;
+      cells.push(text.trim());
+    }
+    if (cells.some(function(c){ return c; })) rows.push(cells);
+  }
+  return rows;
+}
+
+function renderCareerRows(rows) {
+  var body = document.getElementById('careerTableBody');
+  if (!body) return;
+  body.innerHTML = rows.map(function(cells) {
+    var period  = cells[0] || '';
+    var org     = cells[1] || '';
+    var pos     = cells[2] || '';
+    var note    = cells[3] || '';
+    var ongoing = period.indexOf('현재') !== -1;
+    return '<div class="career-row">'
+      + '<div class="cr-period' + (ongoing ? ' ongoing' : '') + '">' + esc(period) + '</div>'
+      + '<div class="cr-org">'  + esc(org)  + '</div>'
+      + '<div class="cr-pos">'  + esc(pos)  + '</div>'
+      + '<div class="cr-note">' + esc(note) + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+/* ─── 페이지 로드 시 저장된 경력 데이터 복원 ──────────────────────────────── */
+(function restoreCareerRows() {
+  try {
+    var saved = localStorage.getItem('careerRows');
+    if (!saved) return;
+    var rows = JSON.parse(saved);
+    if (!Array.isArray(rows) || rows.length === 0) return;
+    renderCareerRows(rows);
+    var btn = document.getElementById('hwpxLoadBtn');
+    if (btn) {
+      btn.innerHTML = '✅ 업데이트 완료 &nbsp;<small style="font-weight:400">다시 불러오기</small>'
+                    + '<input type="file" id="hwpxInput" accept=".hwpx,.hwp" '
+                    + 'style="display:none" onchange="handleHwpxFile(this.files[0])">';
+      btn.className = 'hwpx-load-btn loaded';
+    }
+  } catch(e) {}
+})();
+
+/* ─── Chart.js 플러그인 등록 ─────────────────────────────────────────────── */
+try {
+  if (typeof ChartDataLabels !== 'undefined' && typeof Chart !== 'undefined') {
+    Chart.register(ChartDataLabels);
+  }
+} catch(e) {}
+
+/* ─── Configuration ──────────────────────────────────────────────────────── */
+var SHEET_ID = '1xnZyzu_v9DSE4WFT7RZaR_uaS8hfo3vAcrgzqBNOUM8';
+
+var TABS_CONFIG = {
+  journal:    { name: '논문(저널)' },
+  conference: { name: '논문(학술대회)' },
+  patent:     { name: '특허' },
+  transfer:   { name: '기술이전' },
+  award:      { name: '상훈' }
+};
+
+var COL = {
+  journal: {
+    year:2, sciType:11, journalType:19,
+    title:14, firstAuthor:15, coauthor:16, corrAuthor:17,
+    journalName:18, volume:20, pubDate:21, impact:24, doi:30,
+    bookChapter:5
+  },
+  conference: {
+    year:2, presType:9, title:12, firstAuthor:13, coauthor:14,
+    confName:16, confDate:18, country:19, venue:20
+  },
+  patent: {
+    year:1, domType:9, country:10, regType:11, number:13,
+    title:16, regDate:22, status:25, inventor:27
+  },
+  transfer: {
+    year:1, contract:9, amount:12, signDate:19,
+    method:24, content:25, org:26
+  },
+  award: {
+    year:1, awardName:5, awardDate:6, country:7,
+    org:8, reason:9, recipient:10
+  }
+};
+
+/* ─── State ──────────────────────────────────────────────────────────────── */
+var allData        = {};
+var loadedCount    = 0;
+var cbCounter      = 0;
+var currentTab     = 'overview';
+var totalTabs      = Object.keys(TABS_CONFIG).length;
+var tabYears       = { journal:'', conference:'', patent:'', transfer:'', award:'' };
+var chartInstances = {};
+
+/* ─── JSONP loader ───────────────────────────────────────────────────────── */
+function markSheetDone(tabKey) {
+  if (allData[tabKey]) return;
+  allData[tabKey] = { cols:[], rows:[] };
+  loadedCount++;
+  if (loadedCount === totalTabs) onAllLoaded();
+}
+
+function loadSheet(tabKey, sheetName) {
+  var cbName   = '__gs_cb_' + (cbCounter++);
+  var perTimer = setTimeout(function() {
+    try { delete window[cbName]; } catch(e) {}
+    markSheetDone(tabKey);
+  }, 8000);
+
+  window[cbName] = function(data) {
+    clearTimeout(perTimer);
+    allData[tabKey] = (data && data.table) ? data.table : { cols:[], rows:[] };
+    loadedCount++;
+    if (loadedCount === totalTabs) onAllLoaded();
+    try { delete window[cbName]; } catch(e) {}
+  };
+
+  var s   = document.createElement('script');
+  s.src   = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID
+          + '/gviz/tq?tqx=responseHandler:' + cbName
+          + '&sheet=' + encodeURIComponent(sheetName);
+  s.onerror = function() {
+    clearTimeout(perTimer);
+    markSheetDone(tabKey);
+  };
+  document.head.appendChild(s);
+}
+
+/* 전체 최종 타임아웃 (10초) */
+var globalTimer = setTimeout(forceFinishLoading, 10000);
+
+/* 5초 후에도 로딩 중이면 버튼 표시 */
+setTimeout(function() {
+  if (loadedCount < totalTabs) {
+    var btn = document.getElementById('loadingRetryBtn');
+    var txt = document.getElementById('loadingText');
+    if (btn) btn.style.display = 'inline-block';
+    if (txt) txt.textContent   = '데이터를 불러오는 데 시간이 걸리고 있습니다…';
+  }
+}, 5000);
+
+function forceFinishLoading() {
+  clearTimeout(globalTimer);
+  if (loadedCount >= totalTabs) return;
+  Object.keys(TABS_CONFIG).forEach(function(k) {
+    if (!allData[k]) allData[k] = { cols:[], rows:[] };
+  });
+  loadedCount = totalTabs;
+  onAllLoaded();
+}
+
+Object.keys(TABS_CONFIG).forEach(function(k) { loadSheet(k, TABS_CONFIG[k].name); });
+
+document.getElementById('filterBar').style.display = 'none';
+
+/* ─── Utilities ──────────────────────────────────────────────────────────── */
+function getVal(row, idx) {
+  if (!row||!row.c||idx>=row.c.length||!row.c[idx]) return null;
+  var c = row.c[idx]; return (c.f != null) ? c.f : c.v;
+}
+function getRaw(row, idx) {
+  if (!row||!row.c||idx>=row.c.length||!row.c[idx]) return null;
+  return row.c[idx].v;
+}
+function formatDate(val) {
+  if (val == null) return null;
+  if (typeof val === 'string' && val.indexOf('Date(') === 0) {
+    var m = val.match(/Date\((\d+),(\d+),(\d+)\)/);
+    if (m) return m[1] + '.' + p2(+m[2]+1) + '.' + p2(+m[3]);
+  }
+  var s = String(Math.round(parseFloat(val)));
+  if (/^\d{8}$/.test(s)) return s.slice(0,4)+'.'+s.slice(4,6)+'.'+s.slice(6,8);
+  if (/^\d{6}$/.test(s)) return s.slice(0,4)+'.'+s.slice(4,6);
+  if (/^\d{4}$/.test(s)) return s;
+  return String(val);
+}
+function p2(n) { return n < 10 ? '0'+n : String(n); }
+function extractYear(val) {
+  if (val == null) return null;
+  var m = String(val).match(/\d{4}/);
+  return m ? parseInt(m[0]) : null;
+}
+function numFmt(val) {
+  var n = parseFloat(val); if (isNaN(n)) return null;
+  return n.toLocaleString('ko-KR') + '원';
+}
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function badge(text, cls) {
+  return '<span class="badge badge-'+cls+'">'+esc(text)+'</span>';
+}
+
+/* ─── SCI type helper ───────────────────────────────────────────────────── */
+function getSciType(row) {
+  var jtRaw  = getRaw(row, COL.journal.journalType) || '';
+  var sciRaw = getRaw(row, COL.journal.sciType);
+  if (jtRaw.indexOf('SCIE')   !== -1) return 'SCIE';
+  if (jtRaw.indexOf('ESCI')   !== -1) return 'ESCI';
+  if (jtRaw.indexOf('SCOPUS') !== -1) return 'SCOPUS';
+  if (jtRaw.indexOf('기타')   !== -1) return '기타';
+  if (sciRaw === '01' || sciRaw == 1) return 'SCI';
+  return '비SCI';
+}
+var SCI_CLS   = { SCI:'sci', SCIE:'scie', ESCI:'esci', SCOPUS:'scopus', '기타':'other', '비SCI':'other' };
+var SCI_COLOR = { SCI:'var(--c-sci)', SCIE:'var(--c-scie)', ESCI:'var(--c-esci)', SCOPUS:'var(--c-scopus)' };
+
+/* ─── Row helpers ────────────────────────────────────────────────────────── */
+var TITLE_COL = { journal:14, conference:12, patent:16, transfer:9, award:5 };
+var YEAR_COL  = { journal:2,  conference:2,  patent:1,  transfer:1, award:1 };
+
+function hasData(tabKey, row) {
+  var v = getRaw(row, TITLE_COL[tabKey]);
+  if (v == null) return false;
+  var s = String(v).trim();
+  if (s === '') return false;
+  if (/^\d{4}(\.0+)?$/.test(s)) return false;
+  if (tabKey === 'journal') {
+    var bc = getRaw(row, COL.journal.bookChapter);
+    if (bc === 'O' || bc === 'o') return false;
+    if (row.__isEarlyAccess) return false;
+  }
+  return true;
+}
+function rowYear(tabKey, row) { return extractYear(getRaw(row, YEAR_COL[tabKey])); }
+function rowText(row) {
+  if (!row || !row.c) return '';
+  return row.c.map(function(c){ return c ? String(c.v||'') : ''; }).join(' ');
+}
+
+/* ─── Early Access 행 표시 ───────────────────────────────────────────────── */
+function markEarlyAccessRows(table) {
+  if (!table || !table.rows) return;
+  var inZone = false;
+  table.rows.forEach(function(row) {
+    var title = getRaw(row, TITLE_COL.journal);
+    var s = title ? String(title).toLowerCase() : '';
+    if (s.indexOf('early access') !== -1) { inZone = true; }
+    if (inZone) { row.__isEarlyAccess = true; }
+  });
+}
+
+/* ─── Filtering & sorting ────────────────────────────────────────────────── */
+function getFilteredRows(tabKey) {
+  var table = allData[tabKey];
+  if (!table || !table.rows) return [];
+  var search    = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+  var yearVal   = tabYears[tabKey] || '';
+  var sciVal    = tabKey==='journal' ? document.getElementById('sciSelect').value        : '';
+  var ifVal     = tabKey==='journal' ? document.getElementById('ifSelect').value         : '';
+  var patRegVal = tabKey==='patent'  ? document.getElementById('patentRegSelect').value  : '';
+  var patDomVal = tabKey==='patent'  ? document.getElementById('patentDomSelect').value  : '';
+
+  var filtered = table.rows.filter(function(row) {
+    if (!hasData(tabKey, row)) return false;
+    if (yearVal && String(rowYear(tabKey, row)) !== yearVal) return false;
+    if (search  && rowText(row).toLowerCase().indexOf(search) === -1) return false;
+
+    if (tabKey === 'journal') {
+      if (sciVal && getSciType(row) !== sciVal) return false;
+      if (ifVal) {
+        var ifRaw = parseFloat(getRaw(row, COL.journal.impact));
+        var hasIF = !isNaN(ifRaw);
+        if (ifVal === 'none' && hasIF) return false;
+        else if (ifVal !== 'none') {
+          if      (ifVal === '10+' && (!hasIF || ifRaw < 10)) return false;
+          else if (ifVal === '5+'  && (!hasIF || ifRaw <  5)) return false;
+          else if (ifVal === '3+'  && (!hasIF || ifRaw <  3)) return false;
+          else if (ifVal === '1+'  && (!hasIF || ifRaw <  1)) return false;
+          else if (ifVal === '1-'  && (!hasIF || ifRaw >= 1)) return false;
+        }
+      }
+    }
+
+    if (tabKey === 'patent') {
+      if (patRegVal) {
+        var regRaw = String(getRaw(row, COL.patent.regType) || '');
+        if (regRaw.indexOf(patRegVal) === -1) return false;
+      }
+      if (patDomVal) {
+        var domRaw    = getRaw(row, COL.patent.domType);
+        var isDomestic = (domRaw === '01' || domRaw == 1);
+        if (patDomVal === '국내' && !isDomestic) return false;
+        if (patDomVal === '해외' &&  isDomestic) return false;
+      }
+    }
+    return true;
+  });
+
+  filtered.sort(function(a, b) {
+    return (rowYear(tabKey, b) || 0) - (rowYear(tabKey, a) || 0);
+  });
+  return filtered;
+}
+
+function getUniqueYears(tabKey) {
+  var table = allData[tabKey];
+  if (!table || !table.rows) return [];
+  var set = {};
+  table.rows.forEach(function(row) {
+    if (!hasData(tabKey, row)) return;
+    var y = rowYear(tabKey, row);
+    if (y && y > 1990) set[y] = true;
+  });
+  return Object.keys(set).map(Number).sort(function(a,b){ return b-a; });
+}
+
+/* ─── List renderers ─────────────────────────────────────────────────────── */
+function wrapItem(rankNum, leftBorderColor, badgesHtml, titleHtml, metaLines, rightHtml) {
+  var metaHtml = metaLines.filter(Boolean).map(function(m){
+    return '<div class="list-meta">'+m+'</div>';
+  }).join('');
+  return '<div class="list-item" style="border-left-color:'+leftBorderColor+'">'
+       + '<div class="list-rank">'+rankNum+'</div>'
+       + '<div class="list-main">'
+       +   '<div class="list-badges">'+badgesHtml+'</div>'
+       +   '<div class="list-title">'+titleHtml+'</div>'
+       +   metaHtml
+       + '</div>'
+       + (rightHtml||'')
+       + '</div>';
+}
+
+function renderJournal(row, idx) {
+  var c       = COL.journal;
+  var title   = esc(getVal(row,c.title)   || '(제목 없음)');
+  var first   = getVal(row,c.firstAuthor) || '';
+  var coauth  = getVal(row,c.coauthor)    || '';
+  var corr    = getVal(row,c.corrAuthor)  || '';
+  var jname   = getVal(row,c.journalName) || '';
+  var vol     = getVal(row,c.volume)      || '';
+  var pubDate = formatDate(getRaw(row,c.pubDate));
+  var impact  = getRaw(row,c.impact);
+  var doi     = getRaw(row,c.doi);
+  var year    = rowYear('journal',row);
+
+  var sciType     = getSciType(row);
+  var sciCls      = SCI_CLS[sciType] || 'other';
+  var borderColor = SCI_COLOR[sciType] || 'var(--c-other)';
+  var badgesHtml  = badge(sciType, sciCls) + (year ? badge(year+'년','year') : '');
+
+  var authParts = [];
+  if (first)  authParts.push('<strong>제1저자:</strong> '+esc(first));
+  if (coauth) authParts.push('<strong>공동:</strong> '+esc(coauth));
+  if (corr)   authParts.push('<strong>교신:</strong> '+esc(corr));
+
+  var jParts = [];
+  if (jname)   jParts.push('📖 '+esc(jname));
+  if (vol)     jParts.push(esc(vol));
+  if (pubDate) jParts.push(pubDate);
+  if (doi)     jParts.push('<a href="https://doi.org/'+esc(String(doi))+'" target="_blank" class="doi-link">🔗 DOI</a>');
+
+  var ifVal     = parseFloat(impact);
+  var rightHtml = '<div class="list-if">'
+    + (isNaN(ifVal)
+        ? '<span class="if-none">IF 없음</span>'
+        : '<div class="if-value">'+ifVal.toFixed(2)+'</div><div class="if-label">IF</div>')
+    + '</div>';
+
+  return wrapItem(idx+1, borderColor, badgesHtml, title,
+    [ authParts.join(' &nbsp;·&nbsp; '), jParts.join(' &nbsp;|&nbsp; ') ], rightHtml);
+}
+
+function renderConference(row, idx) {
+  var c        = COL.conference;
+  var title    = esc(getVal(row,c.title)       || '(제목 없음)');
+  var first    = getVal(row,c.firstAuthor)     || '';
+  var coauth   = getVal(row,c.coauthor)        || '';
+  var confName = getVal(row,c.confName)        || '';
+  var country  = getVal(row,c.country)         || '';
+  var venue    = getVal(row,c.venue)           || '';
+  var typeRaw  = getRaw(row,c.presType);
+  var dateStr  = formatDate(getRaw(row,c.confDate));
+  var year     = rowYear('conference',row);
+
+  var typeBadge  = (typeRaw==='01'||typeRaw==1) ? badge('국제','intl')
+                 : (typeRaw==='02'||typeRaw==2) ? badge('국내','domestic') : '';
+  var badgesHtml = typeBadge + (year ? badge(year+'년','year') : '');
+
+  var authParts = [];
+  if (first)  authParts.push('<strong>제1저자:</strong> '+esc(first));
+  if (coauth) authParts.push('<strong>공동:</strong> '+esc(coauth));
+
+  var confParts = [];
+  if (confName) confParts.push('🏛 '+esc(confName));
+  if (country)  confParts.push(esc(country));
+  if (venue)    confParts.push(esc(venue));
+  if (dateStr)  confParts.push('📅 '+dateStr);
+
+  var borderColor = (typeRaw==='01'||typeRaw==1) ? 'var(--c-sci)' : 'var(--c-scie)';
+  return wrapItem(idx+1, borderColor, badgesHtml, title,
+    [ authParts.join(' &nbsp;·&nbsp; '), confParts.join(' &nbsp;|&nbsp; ') ]);
+}
+
+function renderPatent(row, idx) {
+  var c       = COL.patent;
+  var title   = esc(getVal(row,c.title)    || '(명칭 없음)');
+  var number  = getVal(row,c.number)       || '';
+  var domRaw  = getRaw(row,c.domType);
+  var typeRaw = getRaw(row,c.regType);
+  var country = getVal(row,c.country)      || '';
+  var inventor= getVal(row,c.inventor)     || '';
+  var status  = getVal(row,c.status)       || '';
+  var dateStr = formatDate(getRaw(row,c.regDate));
+  var year    = rowYear('patent',row);
+
+  var domBadge  = (domRaw==='01'||domRaw==1) ? badge('국내','domestic')
+                : (domRaw==='02'||domRaw==2) ? badge('해외','foreign') : '';
+  var typeBadge = typeRaw==='등록' ? badge('등록','registered')
+                : typeRaw==='출원' ? badge('출원','applied')
+                : (typeRaw ? badge(String(typeRaw),'other') : '');
+  var badgesHtml = domBadge + typeBadge + (year ? badge(year+'년','year') : '');
+
+  var numLine  = []; if (number)  numLine.push('📋 '+esc(number)+(country?' ('+esc(country)+')':''));
+  var dateLine = []; if (dateStr) dateLine.push('📅 '+dateStr); if (inventor) dateLine.push('발명인: '+esc(inventor));
+  var statusLine = status ? '상태: <strong>'+esc(status)+'</strong>' : '';
+
+  var borderColor = (domRaw==='01'||domRaw==1) ? 'var(--c-sci)' : 'var(--c-esci)';
+  return wrapItem(idx+1, borderColor, badgesHtml, title,
+    [ numLine.join(''), dateLine.join(' &nbsp;·&nbsp; '), statusLine ]);
+}
+
+function renderTransfer(row, idx) {
+  var c        = COL.transfer;
+  var contract = esc(getVal(row,c.contract) || '(계약명 없음)');
+  var org      = getVal(row,c.org)     || '';
+  var content  = getVal(row,c.content) || '';
+  var dateStr  = formatDate(getRaw(row,c.signDate));
+  var amtStr   = numFmt(getRaw(row,c.amount));
+  var year     = rowYear('transfer',row);
+
+  var badgesHtml = badge('기술이전','tech') + (year ? badge(year+'년','year') : '');
+  var line2Parts = [];
+  if (dateStr) line2Parts.push('📅 계약일: '+dateStr);
+  if (amtStr)  line2Parts.push('💰 <strong>'+amtStr+'</strong>');
+
+  return wrapItem(idx+1, 'var(--c-scopus)', badgesHtml, contract,
+    [ org     ? '🏢 이전 대상기관: <strong>'+esc(org)+'</strong>' : '',
+      content ? '📄 '+esc(content) : '',
+      line2Parts.join(' &nbsp;·&nbsp; ') ]);
+}
+
+function renderAward(row, idx) {
+  var c         = COL.award;
+  var awardName = esc(getVal(row,c.awardName) || '(수상명 없음)');
+  var org       = getVal(row,c.org)       || '';
+  var reason    = getVal(row,c.reason)    || '';
+  var recipient = getVal(row,c.recipient) || '';
+  var dateStr   = formatDate(getRaw(row,c.awardDate));
+  var year      = rowYear('award',row);
+
+  var badgesHtml  = badge('수상','award') + (year ? badge(year+'년','year') : '');
+  var bottomParts = [];
+  if (dateStr)   bottomParts.push('📅 '+dateStr);
+  if (recipient) bottomParts.push('수상자: <strong>'+esc(recipient)+'</strong>');
+
+  return wrapItem(idx+1, 'var(--c-sci)', badgesHtml, '🏆 '+awardName,
+    [ org    ? '🏛 '+esc(org)    : '',
+      reason ? '📝 '+esc(reason) : '',
+      bottomParts.join(' &nbsp;·&nbsp; ') ]);
+}
+
+var RENDERERS = {
+  journal:    renderJournal,
+  conference: renderConference,
+  patent:     renderPatent,
+  transfer:   renderTransfer,
+  award:      renderAward
+};
+
+/* ─── Overview (Chart.js) ────────────────────────────────────────────────── */
+function renderOverview() {
+  var counts = {};
+  Object.keys(TABS_CONFIG).forEach(function(key) {
+    var table = allData[key];
+    counts[key] = (table && table.rows)
+      ? table.rows.filter(function(r){ return hasData(key,r); }).length : 0;
+  });
+
+  ['journal','conference','patent','transfer','award'].forEach(function(k) {
+    var el = document.getElementById('ov-'+k);
+    if (el) el.textContent = counts[k];
+  });
+
+  Object.keys(chartInstances).forEach(function(id) {
+    if (chartInstances[id]) { chartInstances[id].destroy(); chartInstances[id] = null; }
+  });
+
+  function makeOptions(colorList) {
+    return {
+      responsive: true,
+      layout: { padding: { top:28, bottom:28, left:44, right:44 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              var total = ctx.dataset.data.reduce(function(a,b){ return a+b; }, 0);
+              var pct   = Math.round(ctx.parsed / total * 100);
+              return ' ' + ctx.label + ': ' + ctx.parsed + '건 (' + pct + '%)';
+            }
+          }
+        },
+        datalabels: {
+          anchor: 'end', align: 'end', offset: 8,
+          color: function(ctx) { return colorList[ctx.dataIndex] || '#333'; },
+          font: { weight: '700', size: 11 },
+          textAlign: 'center',
+          formatter: function(value, ctx) {
+            if (!value || value === 0) return null;
+            var total = ctx.chart.data.datasets[0].data.reduce(function(a,b){ return a+b; }, 0);
+            var pct   = Math.round(value / total * 100);
+            if (pct < 5) return null;
+            return ctx.chart.data.labels[ctx.dataIndex] + '\n' + pct + '%';
+          }
+        }
+      }
+    };
+  }
+
+  /* Chart 1: 전체 성과 분포 */
+  var c1Colors = ['#1a5ca8','#4338ca','#7e22ce','#c2410c','#d97706'];
+  var ctx1 = document.getElementById('chartTotal').getContext('2d');
+  chartInstances.total = new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['저널 논문','학술대회','특허','기술이전','수상'],
+      datasets: [{ data:[counts.journal,counts.conference,counts.patent,counts.transfer,counts.award],
+                   backgroundColor:c1Colors, borderWidth:3, borderColor:'#fff' }]
+    },
+    options: makeOptions(c1Colors)
+  });
+
+  /* Chart 2: 저널 논문 학술지 구분 (SCI + SCIE 합산) */
+  var sciCounts = { 'SCIE(SCI포함)':0, ESCI:0, SCOPUS:0, '기타':0, '비SCI':0 };
+  if (allData.journal && allData.journal.rows) {
+    allData.journal.rows.forEach(function(row) {
+      if (!hasData('journal', row)) return;
+      var t = getSciType(row);
+      if (t === 'SCIE' || t === 'SCI') { sciCounts['SCIE(SCI포함)']++; }
+      else if (sciCounts[t] !== undefined) { sciCounts[t]++; }
+      else { sciCounts['기타']++; }
+    });
+  }
+  var sciOrder          = ['SCIE(SCI포함)','ESCI','SCOPUS','기타','비SCI'];
+  var sciColors         = ['#4338ca','#7e22ce','#c2410c','#6b7280','#9ca3af'];
+  var sciLabels = [], sciData = [], sciColorsFiltered = [];
+  sciOrder.forEach(function(k, i) {
+    if (sciCounts[k] > 0) { sciLabels.push(k); sciData.push(sciCounts[k]); sciColorsFiltered.push(sciColors[i]); }
+  });
+  var ctx2 = document.getElementById('chartSci').getContext('2d');
+  chartInstances.sci = new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+      labels: sciLabels,
+      datasets: [{ data:sciData, backgroundColor:sciColorsFiltered, borderWidth:3, borderColor:'#fff' }]
+    },
+    options: makeOptions(sciColorsFiltered)
+  });
+
+  /* Chart 3: 특허 구분 (국내/해외 × 등록/출원) */
+  var patCounts = { '국내 등록':0, '국내 출원':0, '해외 등록':0, '해외 출원':0 };
+  if (allData.patent && allData.patent.rows) {
+    allData.patent.rows.forEach(function(row) {
+      if (!hasData('patent', row)) return;
+      var domRaw = getRaw(row, COL.patent.domType);
+      var regRaw = String(getRaw(row, COL.patent.regType) || '');
+      var dom    = (domRaw==='01'||domRaw==1) ? '국내' : '해외';
+      var reg    = (regRaw.indexOf('등록') !== -1) ? '등록' : '출원';
+      patCounts[dom+' '+reg]++;
+    });
+  }
+  var patOrder          = ['국내 등록','국내 출원','해외 등록','해외 출원'];
+  var patColors         = ['#1a5ca8','#60a5fa','#7e22ce','#c4b5fd'];
+  var patLabels = [], patData = [], patColorsFiltered = [];
+  patOrder.forEach(function(k, i) {
+    if (patCounts[k] > 0) { patLabels.push(k); patData.push(patCounts[k]); patColorsFiltered.push(patColors[i]); }
+  });
+  var ctx3 = document.getElementById('chartPatent').getContext('2d');
+  chartInstances.patent = new Chart(ctx3, {
+    type: 'doughnut',
+    data: {
+      labels: patLabels,
+      datasets: [{ data:patData, backgroundColor:patColorsFiltered, borderWidth:3, borderColor:'#fff' }]
+    },
+    options: makeOptions(patColorsFiltered)
+  });
+}
+
+/* ─── CSV Export ─────────────────────────────────────────────────────────── */
+function exportCSV() {
+  if (currentTab === 'overview' || currentTab === 'profile') return;
+  var rows = getFilteredRows(currentTab);
+  var headers, rowFn;
+
+  switch (currentTab) {
+    case 'journal':
+      headers = ['연번','사업년도','구분','논문명','제1저자','공동저자','교신저자','학술지명','볼륨','출판일','IF','DOI'];
+      rowFn = function(row, i) {
+        var c = COL.journal;
+        return [i+1, rowYear('journal',row)||'', getSciType(row),
+          getVal(row,c.title)||'', getVal(row,c.firstAuthor)||'',
+          getVal(row,c.coauthor)||'', getVal(row,c.corrAuthor)||'',
+          getVal(row,c.journalName)||'', getVal(row,c.volume)||'',
+          formatDate(getRaw(row,c.pubDate))||'',
+          getRaw(row,c.impact)||'', getRaw(row,c.doi)||''];
+      };
+      break;
+    case 'conference':
+      headers = ['연번','사업년도','발표구분','논문명','제1저자','공동저자','학술대회명','발표일','개최국'];
+      rowFn = function(row, i) {
+        var c = COL.conference;
+        var typeRaw = getRaw(row,c.presType);
+        var pt = (typeRaw==='01'||typeRaw==1)?'국제':(typeRaw==='02'||typeRaw==2)?'국내':'';
+        return [i+1, rowYear('conference',row)||'', pt,
+          getVal(row,c.title)||'', getVal(row,c.firstAuthor)||'',
+          getVal(row,c.coauthor)||'', getVal(row,c.confName)||'',
+          formatDate(getRaw(row,c.confDate))||'', getVal(row,c.country)||''];
+      };
+      break;
+    case 'patent':
+      headers = ['연번','사업연도','국내/해외','등록/출원','출원번호','발명명칭','출원일','발명인','상태'];
+      rowFn = function(row, i) {
+        var c = COL.patent;
+        var domRaw = getRaw(row,c.domType);
+        var dom = (domRaw==='01'||domRaw==1)?'국내':(domRaw==='02'||domRaw==2)?'해외':'';
+        return [i+1, rowYear('patent',row)||'', dom,
+          getRaw(row,c.regType)||'', getVal(row,c.number)||'',
+          getVal(row,c.title)||'', formatDate(getRaw(row,c.regDate))||'',
+          getVal(row,c.inventor)||'', getVal(row,c.status)||''];
+      };
+      break;
+    case 'transfer':
+      headers = ['연번','사업연도','계약명','이전대상기관','계약일','계약금액'];
+      rowFn = function(row, i) {
+        var c = COL.transfer;
+        return [i+1, rowYear('transfer',row)||'',
+          getVal(row,c.contract)||'', getVal(row,c.org)||'',
+          formatDate(getRaw(row,c.signDate))||'', getRaw(row,c.amount)||''];
+      };
+      break;
+    case 'award':
+      headers = ['연번','사업년도','수상명','수여기관','수상년월','수상사유','수상자'];
+      rowFn = function(row, i) {
+        var c = COL.award;
+        return [i+1, rowYear('award',row)||'',
+          getVal(row,c.awardName)||'', getVal(row,c.org)||'',
+          formatDate(getRaw(row,c.awardDate))||'',
+          getVal(row,c.reason)||'', getVal(row,c.recipient)||''];
+      };
+      break;
+    default: return;
+  }
+
+  var csvLines = [headers];
+  rows.forEach(function(row, i) { csvLines.push(rowFn(row, i)); });
+
+  var csvStr = csvLines.map(function(cols) {
+    return cols.map(function(cell) {
+      var s = String(cell == null ? '' : cell);
+      if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+        s = '"' + s.replace(/"/g, '""') + '"';
+      }
+      return s;
+    }).join(',');
+  }).join('\r\n');
+
+  var bom  = '\ufeff';
+  var blob = new Blob([bom + csvStr], { type: 'text/csv;charset=utf-8;' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href   = url;
+  var tabNames = { journal:'저널논문', conference:'학술대회', patent:'특허', transfer:'기술이전', award:'수상' };
+  a.download = '김동성교수_성과_' + (tabNames[currentTab]||currentTab) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ─── UI ─────────────────────────────────────────────────────────────────── */
+function switchTab(tabKey, skipReset) {
+  currentTab = tabKey;
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.classList.toggle('active', btn.dataset.tab === tabKey);
+  });
+  document.querySelectorAll('.stat-card').forEach(function(card) {
+    card.classList.toggle('active', card.dataset.tab === tabKey);
+  });
+
+  /* 탭 바에서 선택된 탭이 보이도록 자동 스크롤 */
+  var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabKey + '"]');
+  if (activeBtn) {
+    activeBtn.scrollIntoView({ behavior:'smooth', block:'nearest', inline:'center' });
+  }
+
+  if (tabKey === 'profile') {
+    document.getElementById('filterBar').style.display       = 'none';
+    document.getElementById('resultInfo').style.display      = 'none';
+    document.getElementById('listView').style.display        = 'none';
+    document.getElementById('overviewSection').style.display = 'none';
+    document.getElementById('profileSection').style.display  = 'block';
+    return;
+  }
+
+  if (tabKey === 'overview') {
+    document.getElementById('filterBar').style.display       = 'none';
+    document.getElementById('resultInfo').style.display      = 'none';
+    document.getElementById('listView').style.display        = 'none';
+    document.getElementById('overviewSection').style.display = 'block';
+    document.getElementById('profileSection').style.display  = 'none';
+    renderOverview();
+    return;
+  }
+
+  document.getElementById('filterBar').style.display       = 'flex';
+  document.getElementById('resultInfo').style.display      = 'flex';
+  document.getElementById('listView').style.display        = 'flex';
+  document.getElementById('overviewSection').style.display = 'none';
+  document.getElementById('profileSection').style.display  = 'none';
+
+  document.querySelectorAll('.journal-filter').forEach(function(el) {
+    el.style.display = (tabKey === 'journal') ? 'inline-block' : 'none';
+  });
+  document.querySelectorAll('.patent-filter').forEach(function(el) {
+    el.style.display = (tabKey === 'patent') ? 'inline-block' : 'none';
+  });
+
+  if (!skipReset) {
+    document.getElementById('searchInput').value      = '';
+    document.getElementById('sciSelect').value        = '';
+    document.getElementById('ifSelect').value         = '';
+    document.getElementById('patentRegSelect').value  = '';
+    document.getElementById('patentDomSelect').value  = '';
+    updateClearBtn();
+  }
+  updateYearFilter(tabKey);
+  applyFilters();
+}
+
+/* ─── 검색창 ──────────────────────────────────────────────────────────────── */
+function onSearchInput() { updateClearBtn(); applyFilters(); }
+function updateClearBtn() {
+  var val = document.getElementById('searchInput').value;
+  document.getElementById('searchClear').style.display = val ? 'block' : 'none';
+}
+function clearSearch() {
+  document.getElementById('searchInput').value = '';
+  updateClearBtn(); applyFilters();
+  document.getElementById('searchInput').focus();
+}
+
+function updateYearFilter(tabKey) {
+  var sel   = document.getElementById('yearSelect');
+  var saved = tabYears[tabKey] || '';
+  sel.innerHTML = '<option value="">전체 연도</option>';
+  getUniqueYears(tabKey).forEach(function(y) {
+    var o = document.createElement('option');
+    o.value = y; o.textContent = y + '년';
+    sel.appendChild(o);
+  });
+  sel.value = (getUniqueYears(tabKey).indexOf(parseInt(saved)) !== -1) ? saved : '';
+}
+
+function saveYearAndFilter() {
+  tabYears[currentTab] = document.getElementById('yearSelect').value;
+  applyFilters();
+}
+
+function applyFilters() {
+  if (currentTab === 'overview' || currentTab === 'profile') return;
+  var rows     = getFilteredRows(currentTab);
+  var listEl   = document.getElementById('listView');
+  var infoEl   = document.getElementById('resultInfo');
+  var renderer = RENDERERS[currentTab];
+
+  if (!rows.length) {
+    listEl.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>검색 결과가 없습니다.</p></div>';
+    infoEl.textContent = '';
+    return;
+  }
+  infoEl.textContent = '총 ' + rows.length + '건 · 최근 연도 순';
+  listEl.innerHTML = rows.map(function(r, i){ return renderer(r, i); }).join('');
+}
+
+/* ─── On load ────────────────────────────────────────────────────────────── */
+function onAllLoaded() {
+  try {
+    if (allData.journal) markEarlyAccessRows(allData.journal);
+    Object.keys(TABS_CONFIG).forEach(function(key) {
+      var table = allData[key];
+      var count = (table && table.rows)
+        ? table.rows.filter(function(r){ return hasData(key,r); }).length : 0;
+      var s = document.getElementById('stat-'+key);
+      var t = document.getElementById('tc-'+key);
+      if (s) s.textContent = count;
+      if (t) t.textContent = count;
+    });
+  } catch(e) {}
+
+  var ov = document.getElementById('loadingOverlay');
+  if (ov) ov.style.display = 'none';
+
+  try { switchTab(currentTab, true); } catch(e) {}
+}
+</script>
+</body>
+</html>
