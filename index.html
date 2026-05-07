@@ -1045,6 +1045,9 @@ function hasData(tabKey, row) {
     if (bc === 'O' || bc === 'o') return false;
     if (row.__isEarlyAccess) return false;
   }
+  if (tabKey === 'conference') {
+    if (row.__isUpcoming) return false;
+  }
   return true;
 }
 function rowYear(tabKey, row) { return extractYear(getRaw(row, YEAR_COL[tabKey])); }
@@ -1062,6 +1065,18 @@ function markEarlyAccessRows(table) {
     var s = title ? String(title).toLowerCase() : '';
     if (s.indexOf('early access') !== -1) { inZone = true; }
     if (inZone) { row.__isEarlyAccess = true; }
+  });
+}
+
+/* ─── 발표예정 행 표시 (학술대회) ────────────────────────────────────────── */
+function markUpcomingRows(table) {
+  if (!table || !table.rows) return;
+  var inZone = false;
+  table.rows.forEach(function(row) {
+    var title = getRaw(row, TITLE_COL.conference);
+    var s = title ? String(title).trim() : '';
+    if (s.indexOf('발표예정') !== -1) { inZone = true; }
+    if (inZone) { row.__isUpcoming = true; }
   });
 }
 
@@ -1612,7 +1627,8 @@ function applyFilters() {
 /* ─── On load ────────────────────────────────────────────────────────────── */
 function onAllLoaded() {
   try {
-    if (allData.journal) markEarlyAccessRows(allData.journal);
+    if (allData.journal)     markEarlyAccessRows(allData.journal);
+    if (allData.conference)  markUpcomingRows(allData.conference);
     Object.keys(TABS_CONFIG).forEach(function(key) {
       var table = allData[key];
       var count = (table && table.rows)
