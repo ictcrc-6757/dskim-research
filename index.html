@@ -232,7 +232,7 @@
 
     .chart-grid {
       display:grid;
-      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      grid-template-columns: repeat(2, 1fr);
       gap:18px;
     }
     .chart-card {
@@ -392,12 +392,11 @@
       .ov-tile .ot-num   { font-size:1.15rem; }
       .ov-tile .ot-label { font-size:.50rem; line-height:1.4; margin-top:3px; }
 
-      /* ── 차트: 1열(전체) + 2열(저널/특허) ── */
+      /* ── 차트: 2열 2행 고정 ── */
       .chart-grid {
         grid-template-columns:1fr 1fr;
         gap:10px;
       }
-      .chart-card:first-child { grid-column:1 / -1; }
       .chart-card { padding:14px 12px; }
       .chart-card-title { font-size:.80rem; margin-bottom:12px; padding-bottom:8px; }
       .chart-wrap { max-width:200px; }
