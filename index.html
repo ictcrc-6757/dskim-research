@@ -894,8 +894,8 @@ var COL = {
     confName:16, confDate:18, country:19, venue:20
   },
   patent: {
-    year:1, domType:9, country:10, regType:11, number:13,
-    title:16, regDate:22, status:25, inventor:27
+    year:1, domType:10, country:11, regType:12, number:14,
+    title:15, regDate:21, status:31, inventor:26
   },
   transfer: {
     year:1, contract:10, amount:15, signDate:14,
@@ -1031,7 +1031,7 @@ var SCI_CLS   = { SCI:'sci', SCIE:'scie', ESCI:'esci', SCOPUS:'scopus', '기타'
 var SCI_COLOR = { SCI:'var(--c-sci)', SCIE:'var(--c-scie)', ESCI:'var(--c-esci)', SCOPUS:'var(--c-scopus)' };
 
 /* ─── Row helpers ────────────────────────────────────────────────────────── */
-var TITLE_COL = { journal:14, conference:12, patent:16, transfer:10, award:5 };
+var TITLE_COL = { journal:14, conference:12, patent:15, transfer:10, award:5 };
 var YEAR_COL  = { journal:2,  conference:2,  patent:1,  transfer:1, award:1 };
 
 function hasData(tabKey, row) {
