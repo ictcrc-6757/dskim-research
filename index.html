@@ -346,15 +346,35 @@
     /* 탭 바 완전 제거 */
     .tabs-nav, .tabs-outer, .tabs, .tab-arrow, .tab-scroll-hint { display:none !important; }
 
+    /* ── lbl-br: 모바일에서만 줄바꿈 ── */
+    .lbl-br { display:none; }
+
     /* ═══════════════════════════════════════════════════════════
        모바일 반응형 (768px 이하)
     ═══════════════════════════════════════════════════════════ */
     @media (max-width: 768px) {
 
-      /* ── 헤더 ── */
-      .header { padding:22px 12px 16px; }
-      .header h1 { font-size:1.3rem; }
+      /* ── 헤더 ② ── */
+      .header {
+        padding: 18px 14px 18px;
+        display: -webkit-flex; display: flex;
+        -webkit-flex-direction: column; flex-direction: column;
+        -webkit-align-items: center; align-items: center;
+        text-align: center;
+        position: relative;
+      }
+      .header h1 { font-size:1.15rem; padding: 0 70px; line-height:1.4; }
       .header p  { font-size:.75rem; }
+      .header-profile-btn {
+        position: absolute;
+        top: 12px; right: 12px;
+        font-size: .72rem;
+        padding: 5px 10px 5px 8px;
+        gap: 4px;
+      }
+
+      /* ── lbl-br: 학술대회 줄바꿈 ③ ── */
+      .lbl-br { display:block; }
 
       /* ── 통계 카드: 5개 한 줄 ── */
       .stats { flex-wrap:nowrap; gap:5px; margin-top:14px; }
@@ -401,14 +421,22 @@
       .ov-tile .ot-num   { font-size:1.15rem; }
       .ov-tile .ot-label { font-size:.50rem; line-height:1.4; margin-top:3px; }
 
-      /* ── 차트: 2열 2행 고정 ── */
+      /* ── 메인 여백 ① ── */
+      .main { padding:14px 14px 50px; }
+
+      /* ── 차트: 2열 고정, 잘림 방지 ① ── */
       .chart-grid {
-        grid-template-columns:1fr 1fr;
-        gap:10px;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        padding: 0;
       }
-      .chart-card { padding:14px 12px; }
-      .chart-card-title { font-size:.80rem; margin-bottom:12px; padding-bottom:8px; }
-      .chart-wrap { max-width:200px; }
+      .chart-card {
+        padding: 12px 10px;
+        overflow: hidden;
+        min-width: 0;
+      }
+      .chart-card-title { font-size:.78rem; margin-bottom:10px; padding-bottom:8px; }
+      .chart-wrap { max-width:100%; width:100%; }
 
       /* ── 프로필 배너 ── */
       .prof-banner {
@@ -458,13 +486,14 @@
 
     /* 480px 이하 추가 최적화 */
     @media (max-width: 480px) {
-      .header h1 { font-size:1.15rem; }
+      .header h1 { font-size:1.05rem; padding:0 65px; }
+      .header-profile-btn { font-size:.68rem; padding:4px 8px 4px 7px; top:10px; right:10px; }
       .stat-card .num   { font-size:1rem; }
-      .stat-card .label { font-size:.48rem; }
+      .stat-card .label { font-size:.46rem; }
       .ov-tile .ot-num   { font-size:1rem; }
-      .ov-tile .ot-label { font-size:.46rem; }
-      .tab-btn { padding:7px 10px; font-size:.74rem; }
-      .chart-wrap { max-width:160px; }
+      .ov-tile .ot-label { font-size:.44rem; }
+      .chart-card { padding:10px 8px; }
+      .chart-card-title { font-size:.72rem; }
     }
   </style>
 </head>
@@ -492,7 +521,7 @@
   <div class="stats">
     <div class="stat-card home-btn" onclick="switchTab('overview')" title="홈 — 성과 개요"><span class="label" style="font-size:.85rem;font-weight:700;opacity:1;">홈</span></div>
     <div class="stat-card" data-tab="journal"    onclick="switchTab('journal')"   ><span class="num" id="stat-journal">-</span><span class="label">논문 (저널)</span></div>
-    <div class="stat-card" data-tab="conference"  onclick="switchTab('conference')" ><span class="num" id="stat-conference">-</span><span class="label">논문 (학술대회)</span></div>
+    <div class="stat-card" data-tab="conference"  onclick="switchTab('conference')" ><span class="num" id="stat-conference">-</span><span class="label">논문 <span class="lbl-br"></span>(학술대회)</span></div>
     <div class="stat-card" data-tab="patent"      onclick="switchTab('patent')"     ><span class="num" id="stat-patent">-</span><span class="label">특허</span></div>
     <div class="stat-card" data-tab="transfer"    onclick="switchTab('transfer')"   ><span class="num" id="stat-transfer">-</span><span class="label">기술이전</span></div>
     <div class="stat-card" data-tab="award"       onclick="switchTab('award')"      ><span class="num" id="stat-award">-</span><span class="label">수상</span></div>
