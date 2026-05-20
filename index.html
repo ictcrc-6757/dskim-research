@@ -316,26 +316,28 @@
       color:var(--text-light); border-top:1px solid var(--border); margin-top:18px;
     }
 
-    /* ── 탭 외부 래퍼 (페이드 효과용) ── */
-    .tabs-outer { position:relative; margin-bottom:0; }
-    .tabs-outer .tabs { margin-bottom:0; border-radius:14px 14px 0 0; }
-    .tabs-outer::after {
-      content:''; position:absolute; right:0; top:0; bottom:0; width:48px;
-      background:linear-gradient(to right, transparent, #ffffff);
-      pointer-events:none; border-radius:0 14px 0 0;
-      display:none;
+    /* ── 탭 네비게이션 래퍼 ── */
+    .tabs-nav {
+      display:flex; align-items:stretch; gap:4px; margin-bottom:14px;
     }
+    .tabs-outer { position:relative; flex:1; min-width:0; margin-bottom:0; }
+    .tabs-outer .tabs { margin-bottom:0; border-radius:10px; }
+    .tabs-outer::after { display:none; }
 
-    /* 탭 스크롤 힌트 (기본 숨김) */
-    .tab-scroll-hint {
-      display:none; text-align:center; font-size:.62rem; color:#94a3b8;
-      padding:4px 0 6px; background:var(--white);
-      border-radius:0 0 14px 14px; margin-bottom:14px;
-      box-shadow:var(--shadow);
+    /* 탭 화살표 버튼 */
+    .tab-arrow {
+      display:flex; align-items:center; justify-content:center;
+      min-width:36px; width:36px; border:none; border-radius:10px;
+      background:var(--white); box-shadow:var(--shadow);
+      color:var(--primary); font-size:1.3rem; font-weight:700;
+      cursor:pointer; transition:background .15s, color .15s;
+      flex-shrink:0;
     }
-    .tab-scroll-hint span {
-      background:#f1f5f9; border-radius:6px; padding:2px 10px;
-    }
+    .tab-arrow:hover { background:var(--primary); color:#fff; }
+    .tab-arrow:active { transform:scale(.93); }
+
+    /* 탭 스크롤 힌트 (숨김) */
+    .tab-scroll-hint { display:none; }
 
     /* ═══════════════════════════════════════════════════════════
        모바일 반응형 (768px 이하)
@@ -491,18 +493,22 @@
 <div class="main">
 
   <!-- Tabs -->
-  <div class="tabs-outer">
-    <div class="tabs">
-      <button class="tab-btn"        data-tab="profile"    onclick="switchTab('profile')">👤 프로필</button>
-      <button class="tab-btn active" data-tab="overview"   onclick="switchTab('overview')">📊 성과 개요</button>
-      <button class="tab-btn"        data-tab="journal"    onclick="switchTab('journal')">논문 (저널)<span class="tab-count" id="tc-journal">-</span></button>
-      <button class="tab-btn"        data-tab="conference" onclick="switchTab('conference')">논문 (학술대회)<span class="tab-count" id="tc-conference">-</span></button>
-      <button class="tab-btn"        data-tab="patent"     onclick="switchTab('patent')">특허<span class="tab-count" id="tc-patent">-</span></button>
-      <button class="tab-btn"        data-tab="transfer"   onclick="switchTab('transfer')">기술이전<span class="tab-count" id="tc-transfer">-</span></button>
-      <button class="tab-btn"        data-tab="award"      onclick="switchTab('award')">수상<span class="tab-count" id="tc-award">-</span></button>
+  <div class="tabs-nav">
+    <button class="tab-arrow" id="tabArrowLeft"  onclick="scrollTabsBy(-200)" title="이전 탭">&#8249;</button>
+    <div class="tabs-outer">
+      <div class="tabs" id="tabsBar">
+        <button class="tab-btn"        data-tab="profile"    onclick="switchTab('profile')">👤 프로필</button>
+        <button class="tab-btn active" data-tab="overview"   onclick="switchTab('overview')">📊 성과 개요</button>
+        <button class="tab-btn"        data-tab="journal"    onclick="switchTab('journal')">논문 (저널)<span class="tab-count" id="tc-journal">-</span></button>
+        <button class="tab-btn"        data-tab="conference" onclick="switchTab('conference')">논문 (학술대회)<span class="tab-count" id="tc-conference">-</span></button>
+        <button class="tab-btn"        data-tab="patent"     onclick="switchTab('patent')">특허<span class="tab-count" id="tc-patent">-</span></button>
+        <button class="tab-btn"        data-tab="transfer"   onclick="switchTab('transfer')">기술이전<span class="tab-count" id="tc-transfer">-</span></button>
+        <button class="tab-btn"        data-tab="award"      onclick="switchTab('award')">수상<span class="tab-count" id="tc-award">-</span></button>
+      </div>
     </div>
+    <button class="tab-arrow" id="tabArrowRight" onclick="scrollTabsBy(200)"  title="다음 탭">&#8250;</button>
   </div>
-  <div class="tab-scroll-hint"><span>← 탭 좌우 스크롤 →</span></div>
+  <div class="tab-scroll-hint"></div>
 
   <!-- Filters -->
   <div class="filter-bar" id="filterBar">
@@ -1596,6 +1602,12 @@ function exportCSV() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+/* ─── 탭 화살표 스크롤 ───────────────────────────────────────────────────── */
+function scrollTabsBy(amount) {
+  var bar = document.getElementById('tabsBar');
+  if (bar) bar.scrollBy({ left: amount, behavior: 'smooth' });
 }
 
 /* ─── UI ─────────────────────────────────────────────────────────────────── */
