@@ -60,11 +60,15 @@
 
     .stats { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:26px; }
     .stat-card {
-      background:rgba(255,255,255,.13); backdrop-filter:blur(8px);
+      background:rgba(255,255,255,.13);
+      -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
       border:1px solid rgba(255,255,255,.22); border-radius:14px;
       padding:12px 20px; text-align:center; min-width:106px;
-      cursor:pointer; transition:background .18s, transform .15s;
-      user-select:none;
+      cursor:pointer;
+      -webkit-transition:background .18s, -webkit-transform .15s;
+      transition:background .18s, transform .15s;
+      -webkit-user-select:none; -moz-user-select:none; user-select:none;
+      -webkit-tap-highlight-color:transparent; touch-action:manipulation;
     }
     .stat-card:hover  { background:rgba(255,255,255,.25); transform:translateY(-2px); }
     .stat-card.active { background:rgba(255,255,255,.35); border-color:rgba(255,255,255,.6); }
@@ -72,21 +76,40 @@
     .stat-card .num   { font-size:1.6rem; font-weight:700; display:block; }
     .stat-card .label { font-size:.73rem; opacity:.85; margin-top:2px; }
 
+    /* ── 헤더 프로필 버튼 ── */
+    .header-profile-btn {
+      position:absolute; top:14px; right:16px;
+      background:rgba(255,255,255,.18); border:1px solid rgba(255,255,255,.35);
+      border-radius:50px; padding:6px 14px 6px 10px;
+      color:#fff; font-size:.80rem; font-weight:600;
+      cursor:pointer; display:-webkit-flex; display:flex;
+      -webkit-align-items:center; align-items:center; gap:6px;
+      -webkit-transition:background .18s; transition:background .18s;
+      text-decoration:none; white-space:nowrap;
+      -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    }
+    .header-profile-btn:hover { background:rgba(255,255,255,.30); }
+    .header-profile-btn .btn-icon { font-size:.95rem; }
+
     /* ── Main ── */
     .main { max-width:1100px; margin:0 auto; padding:22px 16px 60px; }
 
     /* ── Tabs ── */
     .tabs {
-      display:flex; gap:4px; background:var(--white); border-radius:14px;
-      padding:6px; box-shadow:var(--shadow); overflow-x:auto; margin-bottom:16px;
-      scrollbar-width:none;
+      display:-webkit-flex; display:flex;
+      gap:4px; background:var(--white); border-radius:14px;
+      padding:6px; -webkit-box-shadow:var(--shadow); box-shadow:var(--shadow);
+      overflow-x:auto; overflow-x:-moz-scrollbars-none; margin-bottom:16px;
+      scrollbar-width:none; -ms-overflow-style:none;
+      -webkit-overflow-scrolling:touch;
     }
     .tabs::-webkit-scrollbar { display:none; }
     .tab-btn {
-      flex:1; min-width:110px; padding:9px 12px; border:none;
+      -webkit-flex:1; flex:1; min-width:110px; padding:9px 12px; border:none;
       background:transparent; border-radius:9px; font-size:.87rem;
       font-weight:500; color:var(--text-light); cursor:pointer;
-      transition:all .18s; white-space:nowrap;
+      -webkit-transition:all .18s; transition:all .18s; white-space:nowrap;
+      -webkit-tap-highlight-color:transparent; touch-action:manipulation;
     }
     .tab-btn.active { background:var(--primary); color:#fff; }
     .tab-btn:hover:not(.active) { background:var(--bg); color:var(--text); }
@@ -320,28 +343,8 @@
       color:var(--text-light); border-top:1px solid var(--border); margin-top:18px;
     }
 
-    /* ── 탭 네비게이션 래퍼 ── */
-    .tabs-nav {
-      display:flex; align-items:stretch; gap:4px; margin-bottom:14px;
-    }
-    .tabs-outer { position:relative; flex:1; min-width:0; margin-bottom:0; }
-    .tabs-outer .tabs { margin-bottom:0; border-radius:10px; }
-    .tabs-outer::after { display:none; }
-
-    /* 탭 화살표 버튼 */
-    .tab-arrow {
-      display:flex; align-items:center; justify-content:center;
-      min-width:36px; width:36px; border:none; border-radius:10px;
-      background:var(--white); box-shadow:var(--shadow);
-      color:var(--primary); font-size:1.3rem; font-weight:700;
-      cursor:pointer; transition:background .15s, color .15s;
-      flex-shrink:0;
-    }
-    .tab-arrow:hover { background:var(--primary); color:#fff; }
-    .tab-arrow:active { transform:scale(.93); }
-
-    /* 탭 스크롤 힌트 (숨김) */
-    .tab-scroll-hint { display:none; }
+    /* 탭 바 완전 제거 */
+    .tabs-nav, .tabs-outer, .tabs, .tab-arrow, .tab-scroll-hint { display:none !important; }
 
     /* ═══════════════════════════════════════════════════════════
        모바일 반응형 (768px 이하)
@@ -482,6 +485,9 @@
 
 <!-- ── Header ── -->
 <div class="header">
+  <button class="header-profile-btn" onclick="switchTab('profile')" title="프로필 보기">
+    <span class="btn-icon">👤</span> 프로필
+  </button>
   <h1>김동성 교수님 연구 성과</h1>
   <div class="stats">
     <div class="stat-card home-btn" onclick="switchTab('overview')" title="홈 — 성과 개요"><span class="label" style="font-size:.85rem;font-weight:700;opacity:1;">홈</span></div>
@@ -496,23 +502,6 @@
 <!-- ── Main ── -->
 <div class="main">
 
-  <!-- Tabs -->
-  <div class="tabs-nav">
-    <button class="tab-arrow" id="tabArrowLeft"  onclick="scrollTabsBy(-200)" title="이전 탭">&#8249;</button>
-    <div class="tabs-outer">
-      <div class="tabs" id="tabsBar">
-        <button class="tab-btn"        data-tab="profile"    onclick="switchTab('profile')">👤 프로필</button>
-        <button class="tab-btn active" data-tab="overview"   onclick="switchTab('overview')">📊 성과 개요</button>
-        <button class="tab-btn"        data-tab="journal"    onclick="switchTab('journal')">논문 (저널)<span class="tab-count" id="tc-journal">-</span></button>
-        <button class="tab-btn"        data-tab="conference" onclick="switchTab('conference')">논문 (학술대회)<span class="tab-count" id="tc-conference">-</span></button>
-        <button class="tab-btn"        data-tab="patent"     onclick="switchTab('patent')">특허<span class="tab-count" id="tc-patent">-</span></button>
-        <button class="tab-btn"        data-tab="transfer"   onclick="switchTab('transfer')">기술이전<span class="tab-count" id="tc-transfer">-</span></button>
-        <button class="tab-btn"        data-tab="award"      onclick="switchTab('award')">수상<span class="tab-count" id="tc-award">-</span></button>
-      </div>
-    </div>
-    <button class="tab-arrow" id="tabArrowRight" onclick="scrollTabsBy(200)"  title="다음 탭">&#8250;</button>
-  </div>
-  <div class="tab-scroll-hint"></div>
 
   <!-- Filters -->
   <div class="filter-bar" id="filterBar">
