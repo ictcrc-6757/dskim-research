@@ -1127,6 +1127,19 @@ function getFilteredRows(tabKey) {
     return true;
   });
 
+  /* ─── 기술이전 중복 제거: 계약명 + 체결일자가 같으면 하나만 표시 ─── */
+  if (tabKey === 'transfer') {
+    var seen = {};
+    filtered = filtered.filter(function(row) {
+      var contract = String(getRaw(row, COL.transfer.contract) || '').trim();
+      var date     = String(getRaw(row, COL.transfer.signDate) || '').trim();
+      var key      = contract + '||' + date;
+      if (seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
+  }
+
   filtered.sort(function(a, b) {
     return (rowYear(tabKey, b) || 0) - (rowYear(tabKey, a) || 0);
   });
