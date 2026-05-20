@@ -732,34 +732,13 @@
       <h2>📊 연구 성과 개요</h2>
       <p></p>
     </div>
-    <div class="ov-summary">
-      <div class="ov-tile" onclick="switchTab('journal')">
-        <span class="ot-num" id="ov-journal">-</span><div class="ot-label">📄 저널 논문</div>
-      </div>
-      <div class="ov-tile" onclick="switchTab('conference')">
-        <span class="ot-num" id="ov-conference">-</span><div class="ot-label">🏛 학술대회</div>
-      </div>
-      <div class="ov-tile" onclick="switchTab('patent')">
-        <span class="ot-num" id="ov-patent">-</span><div class="ot-label">💡 특허</div>
-      </div>
-      <div class="ov-tile" onclick="switchTab('transfer')">
-        <span class="ot-num" id="ov-transfer">-</span><div class="ot-label">🔬 기술이전</div>
-      </div>
-      <div class="ov-tile" onclick="switchTab('award')">
-        <span class="ot-num" id="ov-award">-</span><div class="ot-label">🏆 수상</div>
-      </div>
-    </div>
     <div class="chart-grid">
       <div class="chart-card">
-        <div class="chart-card-title">전체 성과 분포</div>
-        <div class="chart-wrap"><canvas id="chartTotal"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-card-title">저널 논문 학술지 구분</div>
+        <div class="chart-card-title">논문 구분</div>
         <div class="chart-wrap"><canvas id="chartSci"></canvas></div>
       </div>
       <div class="chart-card">
-        <div class="chart-card-title">특허 구분 (국내/해외 · 등록/출원)</div>
+        <div class="chart-card-title">특허 구분</div>
         <div class="chart-wrap"><canvas id="chartPatent"></canvas></div>
       </div>
       <div class="chart-card">
@@ -1411,20 +1390,7 @@ function renderOverview() {
     };
   }
 
-  /* Chart 1: 전체 성과 분포 */
-  var c1Colors = ['#1a5ca8','#4338ca','#7e22ce','#c2410c','#d97706'];
-  var ctx1 = document.getElementById('chartTotal').getContext('2d');
-  chartInstances.total = new Chart(ctx1, {
-    type: 'doughnut',
-    data: {
-      labels: ['저널 논문','학술대회','특허','기술이전','수상'],
-      datasets: [{ data:[counts.journal,counts.conference,counts.patent,counts.transfer,counts.award],
-                   backgroundColor:c1Colors, borderWidth:3, borderColor:'#fff' }]
-    },
-    options: makeOptions(c1Colors)
-  });
-
-  /* Chart 2: 저널 논문 학술지 구분 (SCI + SCIE 합산) */
+  /* Chart 2: 논문 구분 (SCI + SCIE 합산) */
   var sciCounts = { 'SCIE(SCI포함)':0, ESCI:0, SCOPUS:0, '기타':0, '비SCI':0 };
   if (allData.journal && allData.journal.rows) {
     allData.journal.rows.forEach(function(row) {
