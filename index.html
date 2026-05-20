@@ -1080,6 +1080,19 @@ function markUpcomingRows(table) {
   });
 }
 
+/* ─── 기술이전 중복 제거 헬퍼 ───────────────────────────────────────────── */
+function dedupeTransferRows(rows) {
+  var seen = {};
+  return rows.filter(function(row) {
+    var contract = String(getRaw(row, COL.transfer.contract) || '').trim();
+    var date     = String(getRaw(row, COL.transfer.signDate) || '').trim();
+    var key      = contract + '||' + date;
+    if (seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
+}
+
 /* ─── Filtering & sorting ────────────────────────────────────────────────── */
 function getFilteredRows(tabKey) {
   var table = allData[tabKey];
@@ -1129,15 +1142,7 @@ function getFilteredRows(tabKey) {
 
   /* ─── 기술이전 중복 제거: 계약명 + 체결일자가 같으면 하나만 표시 ─── */
   if (tabKey === 'transfer') {
-    var seen = {};
-    filtered = filtered.filter(function(row) {
-      var contract = String(getRaw(row, COL.transfer.contract) || '').trim();
-      var date     = String(getRaw(row, COL.transfer.signDate) || '').trim();
-      var key      = contract + '||' + date;
-      if (seen[key]) return false;
-      seen[key] = true;
-      return true;
-    });
+    filtered = dedupeTransferRows(filtered);
   }
 
   filtered.sort(function(a, b) {
@@ -1349,8 +1354,10 @@ function renderOverview() {
   var counts = {};
   Object.keys(TABS_CONFIG).forEach(function(key) {
     var table = allData[key];
-    counts[key] = (table && table.rows)
-      ? table.rows.filter(function(r){ return hasData(key,r); }).length : 0;
+    var rows = (table && table.rows)
+      ? table.rows.filter(function(r){ return hasData(key,r); }) : [];
+    if (key === 'transfer') rows = dedupeTransferRows(rows);
+    counts[key] = rows.length;
   });
 
   ['journal','conference','patent','transfer','award'].forEach(function(k) {
@@ -1667,8 +1674,10 @@ function onAllLoaded() {
     if (allData.conference)  markUpcomingRows(allData.conference);
     Object.keys(TABS_CONFIG).forEach(function(key) {
       var table = allData[key];
-      var count = (table && table.rows)
-        ? table.rows.filter(function(r){ return hasData(key,r); }).length : 0;
+      var rows = (table && table.rows)
+        ? table.rows.filter(function(r){ return hasData(key,r); }) : [];
+      if (key === 'transfer') rows = dedupeTransferRows(rows);
+      var count = rows.length;
       var s = document.getElementById('stat-'+key);
       var t = document.getElementById('tc-'+key);
       if (s) s.textContent = count;
