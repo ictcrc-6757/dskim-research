@@ -1163,7 +1163,30 @@ function getFilteredRows(tabKey) {
     filtered = dedupeTransferRows(filtered);
   }
 
+  /* ① 날짜 컬럼 기반 내림차순 정렬 */
   filtered.sort(function(a, b) {
+    var dateColMap = {
+      journal:    COL.journal.pubDate,
+      conference: COL.conference.confDate,
+      patent:     COL.patent.regDate,
+      transfer:   COL.transfer.signDate,
+      award:      COL.award.awardDate
+    };
+    var dc = dateColMap[tabKey];
+    function toSortKey(row) {
+      if (dc == null) return '';
+      var raw = getRaw(row, dc);
+      if (raw == null) return '';
+      var s = String(raw);
+      /* Google Sheets Date(yyyy,m,d) 형식 */
+      var m = s.match(/Date\((\d+),(\d+),(\d+)\)/);
+      if (m) return m[1] + p2(+m[2]+1) + p2(+m[3]);
+      /* YYYYMMDD / YYYYMM / YYYY 숫자 형식 */
+      var digits = s.replace(/\D/g,'');
+      return digits.length >= 6 ? digits.slice(0,8) : digits.slice(0,4);
+    }
+    var da = toSortKey(a), db = toSortKey(b);
+    if (db !== da) return db > da ? 1 : -1;
     return (rowYear(tabKey, b) || 0) - (rowYear(tabKey, a) || 0);
   });
   return filtered;
@@ -1215,19 +1238,22 @@ function renderJournal(row, idx) {
   var borderColor = SCI_COLOR[sciType] || 'var(--c-other)';
   var badgesHtml  = badge(sciType, sciCls) + (year ? badge(year+'년','year') : '');
 
+  var metaLines = [];
   var authParts = [];
   if (first)  authParts.push('<strong>제1저자:</strong> '+esc(first));
   if (coauth) authParts.push('<strong>공동:</strong> '+esc(coauth));
   if (corr)   authParts.push('<strong>교신:</strong> '+esc(corr));
+  if (authParts.length) metaLines.push(authParts.join(' &nbsp;·&nbsp; '));
 
-  var jParts = [];
-  if (jname)   jParts.push('📖 '+esc(jname));
-  if (vol)     jParts.push(esc(vol));
-  if (pubDate) jParts.push(pubDate);
+  if (jname)   metaLines.push('‣ '+esc(jname));
+  var volDate = [];
+  if (vol)     volDate.push(esc(vol));
+  if (pubDate) volDate.push(pubDate);
+  if (volDate.length) metaLines.push('‣ ' + volDate.join(' &nbsp;|&nbsp; '));
   if (doi) {
     var doiStr = String(doi).trim();
     var doiUrl = doiStr.match(/^https?:\/\//) ? doiStr : 'https://doi.org/' + doiStr;
-    jParts.push('<a href="'+esc(doiUrl)+'" target="_blank" class="doi-link">🔗 DOI</a>');
+    metaLines.push('<a href="'+esc(doiUrl)+'" target="_blank" class="doi-link">‣ DOI</a>');
   }
 
   var ifVal     = parseFloat(impact);
@@ -1237,8 +1263,7 @@ function renderJournal(row, idx) {
         : '<div class="if-value">'+ifVal.toFixed(2)+'</div><div class="if-label">IF</div>')
     + '</div>';
 
-  return wrapItem(idx+1, borderColor, badgesHtml, title,
-    [ authParts.join(' &nbsp;·&nbsp; '), jParts.join(' &nbsp;|&nbsp; ') ], rightHtml);
+  return wrapItem(idx+1, borderColor, badgesHtml, title, metaLines, rightHtml);
 }
 
 function renderConference(row, idx) {
@@ -1257,19 +1282,21 @@ function renderConference(row, idx) {
                  : (typeRaw==='02'||typeRaw==2) ? badge('국내','domestic') : '';
   var badgesHtml = typeBadge + (year ? badge(year+'년','year') : '');
 
+  var confMetaLines = [];
   var authParts = [];
   if (first)  authParts.push('<strong>제1저자:</strong> '+esc(first));
   if (coauth) authParts.push('<strong>공동:</strong> '+esc(coauth));
+  if (authParts.length) confMetaLines.push(authParts.join(' &nbsp;·&nbsp; '));
 
-  var confParts = [];
-  if (confName) confParts.push('🏛 '+esc(confName));
-  if (country)  confParts.push(esc(country));
-  if (venue)    confParts.push(esc(venue));
-  if (dateStr)  confParts.push('📅 '+dateStr);
+  if (confName) confMetaLines.push('‣ '+esc(confName));
+  var locParts = [];
+  if (country) locParts.push(esc(country));
+  if (venue)   locParts.push(esc(venue));
+  if (locParts.length) confMetaLines.push('‣ ' + locParts.join(' &nbsp;|&nbsp; '));
+  if (dateStr) confMetaLines.push('‣ '+dateStr);
 
   var borderColor = (typeRaw==='01'||typeRaw==1) ? 'var(--c-sci)' : 'var(--c-scie)';
-  return wrapItem(idx+1, borderColor, badgesHtml, title,
-    [ authParts.join(' &nbsp;·&nbsp; '), confParts.join(' &nbsp;|&nbsp; ') ]);
+  return wrapItem(idx+1, borderColor, badgesHtml, title, confMetaLines);
 }
 
 function renderPatent(row, idx) {
@@ -1291,21 +1318,15 @@ function renderPatent(row, idx) {
                 : (typeRaw ? badge(String(typeRaw),'other') : '');
   var badgesHtml = domBadge + typeBadge + (year ? badge(year+'년','year') : '');
 
-  var line1Parts = [];
-  if (country)  line1Parts.push('🌏 <strong>국가:</strong> ' + esc(country));
-  if (number)   line1Parts.push('📋 <strong>출원(등록)번호:</strong> ' + esc(number));
-
-  var line2Parts = [];
-  if (dateStr)  line2Parts.push('📅 <strong>출원(등록)일:</strong> ' + dateStr);
-  if (status)   line2Parts.push('🔖 <strong>상태:</strong> ' + esc(status));
-
-  var line3 = inventor ? '👨‍💼 <strong>발명인:</strong> ' + esc(inventor) : '';
+  var patMetaLines = [];
+  if (country)  patMetaLines.push('‣ <strong>국가:</strong> ' + esc(country));
+  if (number)   patMetaLines.push('‣ <strong>출원(등록)번호:</strong> ' + esc(number));
+  if (dateStr)  patMetaLines.push('‣ <strong>출원(등록)일:</strong> ' + dateStr);
+  if (status)   patMetaLines.push('‣ <strong>상태:</strong> ' + esc(status));
+  if (inventor) patMetaLines.push('‣ <strong>발명인:</strong> ' + esc(inventor));
 
   var borderColor = (domRaw==='01'||domRaw==1) ? 'var(--c-sci)' : 'var(--c-esci)';
-  return wrapItem(idx+1, borderColor, badgesHtml, title,
-    [ line1Parts.join(' &nbsp;·&nbsp; '),
-      line2Parts.join(' &nbsp;·&nbsp; '),
-      line3 ]);
+  return wrapItem(idx+1, borderColor, badgesHtml, title, patMetaLines);
 }
 
 function renderTransfer(row, idx) {
@@ -1321,24 +1342,15 @@ function renderTransfer(row, idx) {
 
   var badgesHtml  = badge('기술이전','tech') + (year ? badge(year+'년','year') : '');
 
-  var line1Parts = [];
-  if (org)      line1Parts.push('🏢 <strong>기술실시 대상기관:</strong> ' + esc(org));
+  var trMetaLines = [];
+  if (org)       trMetaLines.push('‣ <strong>기술실시 대상기관:</strong> ' + esc(org));
+  if (dateStr)   trMetaLines.push('‣ <strong>계약 체결일자:</strong> ' + dateStr);
+  if (amtStr)    trMetaLines.push('‣ <strong>계약금액:</strong> ' + amtStr);
+  if (inventor)  trMetaLines.push('‣ <strong>기술발명자:</strong> ' + esc(inventor));
+  if (status)    trMetaLines.push('‣ <strong>상태:</strong> ' + esc(status));
+  if (ipRelated) trMetaLines.push('‣ <strong>관련지재권:</strong> ' + esc(ipRelated));
 
-  var line2Parts = [];
-  if (dateStr)  line2Parts.push('📅 <strong>계약 체결일자:</strong> ' + dateStr);
-  if (amtStr)   line2Parts.push('💰 <strong>계약금액:</strong> ' + amtStr);
-
-  var line3Parts = [];
-  if (inventor) line3Parts.push('👨‍💼 <strong>기술발명자:</strong> ' + esc(inventor));
-  if (status)   line3Parts.push('🔖 <strong>상태:</strong> ' + esc(status));
-
-  var line4 = ipRelated ? '📋 <strong>관련지재권:</strong> ' + esc(ipRelated) : '';
-
-  return wrapItem(idx+1, 'var(--c-scopus)', badgesHtml, content,
-    [ line1Parts.join(''),
-      line2Parts.join(' &nbsp;·&nbsp; '),
-      line3Parts.join(' &nbsp;·&nbsp; '),
-      line4 ]);
+  return wrapItem(idx+1, 'var(--c-scopus)', badgesHtml, content, trMetaLines);
 }
 
 function renderAward(row, idx) {
@@ -1351,14 +1363,14 @@ function renderAward(row, idx) {
   var year      = rowYear('award',row);
 
   var badgesHtml  = badge('수상','award') + (year ? badge(year+'년','year') : '');
-  var bottomParts = [];
-  if (dateStr)   bottomParts.push('📅 '+dateStr);
-  if (recipient) bottomParts.push('수상자: <strong>'+esc(recipient)+'</strong>');
 
-  return wrapItem(idx+1, 'var(--c-sci)', badgesHtml, '🏆 '+awardName,
-    [ org    ? '🏛 '+esc(org)    : '',
-      reason ? '📝 '+esc(reason) : '',
-      bottomParts.join(' &nbsp;·&nbsp; ') ]);
+  var awMetaLines = [];
+  if (org)       awMetaLines.push('‣ '+esc(org));
+  if (reason)    awMetaLines.push('‣ '+esc(reason));
+  if (dateStr)   awMetaLines.push('‣ '+dateStr);
+  if (recipient) awMetaLines.push('‣ 수상자: <strong>'+esc(recipient)+'</strong>');
+
+  return wrapItem(idx+1, 'var(--c-sci)', badgesHtml, awardName, awMetaLines);
 }
 
 var RENDERERS = {
