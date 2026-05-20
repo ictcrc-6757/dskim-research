@@ -1300,18 +1300,16 @@ function renderPatent(row, idx) {
 
 function renderTransfer(row, idx) {
   var c         = COL.transfer;
-  var contract  = esc(getVal(row,c.contract)  || '(계약명 없음)');
+  var content   = esc(getVal(row, 27) || getVal(row, c.contract) || '(내용 없음)'); /* AB열 = 기술실시 내용 */
   var org       = getVal(row,c.org)       || '';
   var inventor  = getVal(row,c.inventor)  || '';
   var ipRelated = getVal(row,c.ipRelated) || '';
-  var method    = getVal(row,c.method)    || '';
   var status    = getVal(row,c.status)    || '';
   var dateStr   = formatDate(getRaw(row,c.signDate));
   var amtStr    = numFmt(getRaw(row,c.amount));
   var year      = rowYear('transfer',row);
 
-  var methodBadge = method ? badge(method,'other') : '';
-  var badgesHtml  = badge('기술이전','tech') + methodBadge + (year ? badge(year+'년','year') : '');
+  var badgesHtml  = badge('기술이전','tech') + (year ? badge(year+'년','year') : '');
 
   var line1Parts = [];
   if (org)      line1Parts.push('🏢 <strong>기술실시 대상기관:</strong> ' + esc(org));
@@ -1326,7 +1324,7 @@ function renderTransfer(row, idx) {
 
   var line4 = ipRelated ? '📋 <strong>관련지재권:</strong> ' + esc(ipRelated) : '';
 
-  return wrapItem(idx+1, 'var(--c-scopus)', badgesHtml, contract,
+  return wrapItem(idx+1, 'var(--c-scopus)', badgesHtml, content,
     [ line1Parts.join(''),
       line2Parts.join(' &nbsp;·&nbsp; '),
       line3Parts.join(' &nbsp;·&nbsp; '),
