@@ -1048,6 +1048,12 @@ function hasData(tabKey, row) {
   if (tabKey === 'conference') {
     if (row.__isUpcoming) return false;
   }
+  if (tabKey === 'patent') {
+    var patYear = rowYear('patent', row);
+    if (!patYear || patYear < 2020) return false;
+    var regTypeRaw = String(getRaw(row, COL.patent.regType) || '').trim();
+    if (regTypeRaw === '임시') return false;
+  }
   return true;
 }
 function rowYear(tabKey, row) { return extractYear(getRaw(row, YEAR_COL[tabKey])); }
