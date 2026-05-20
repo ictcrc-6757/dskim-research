@@ -899,7 +899,7 @@ var COL = {
   journal: {
     year:2, sciType:11, journalType:19,
     title:14, firstAuthor:15, coauthor:16, corrAuthor:17,
-    journalName:18, volume:20, pubDate:21, impact:24, doi:30,
+    journalName:18, volume:20, pubDate:21, impact:24, doi:31,
     bookChapter:5
   },
   conference: {
@@ -1225,7 +1225,11 @@ function renderJournal(row, idx) {
   if (jname)   jParts.push('📖 '+esc(jname));
   if (vol)     jParts.push(esc(vol));
   if (pubDate) jParts.push(pubDate);
-  if (doi)     jParts.push('<a href="https://doi.org/'+esc(String(doi))+'" target="_blank" class="doi-link">🔗 DOI</a>');
+  if (doi) {
+    var doiStr = String(doi).trim();
+    var doiUrl = doiStr.match(/^https?:\/\//) ? doiStr : 'https://doi.org/' + doiStr;
+    jParts.push('<a href="'+esc(doiUrl)+'" target="_blank" class="doi-link">🔗 DOI</a>');
+  }
 
   var ifVal     = parseFloat(impact);
   var rightHtml = '<div class="list-if">'
