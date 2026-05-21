@@ -1736,6 +1736,8 @@ function switchTab(tabKey, skipReset) {
   });
 
   if (!skipReset) {
+    /* 탭 전환 시 해당 탭의 연도 필터도 초기화 */
+    tabYears[tabKey] = '';
     document.getElementById('searchInput').value      = '';
     document.getElementById('sciSelect').value        = '';
     document.getElementById('ifSelect').value         = '';
