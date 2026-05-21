@@ -1031,15 +1031,13 @@ function badge(text, cls) {
 /* ─── SCI type helper ───────────────────────────────────────────────────── */
 function getSciType(row) {
   var jtRaw  = getRaw(row, COL.journal.journalType) || '';
-  var sciRaw = getRaw(row, COL.journal.sciType);
+  /* T열(학술지구분): SCIE / ESCI / SCOPUS 이외의 모든 구분 → 비SCI */
   if (jtRaw.indexOf('SCIE')   !== -1) return 'SCIE';
   if (jtRaw.indexOf('ESCI')   !== -1) return 'ESCI';
   if (jtRaw.indexOf('SCOPUS') !== -1) return 'SCOPUS';
-  if (jtRaw.indexOf('기타')   !== -1) return '기타';
-  if (sciRaw === '01' || sciRaw == 1) return 'SCI';
   return '비SCI';
 }
-var SCI_CLS   = { SCI:'sci', SCIE:'scie', ESCI:'esci', SCOPUS:'scopus', '기타':'other', '비SCI':'other' };
+var SCI_CLS   = { SCIE:'scie', ESCI:'esci', SCOPUS:'scopus', '비SCI':'other' };
 var SCI_COLOR = { SCI:'var(--c-sci)', SCIE:'var(--c-scie)', ESCI:'var(--c-esci)', SCOPUS:'var(--c-scopus)' };
 
 /* ─── Row helpers ────────────────────────────────────────────────────────── */
@@ -1434,18 +1432,18 @@ function renderOverview() {
   }
 
   /* Chart 2: 논문 구분 (SCI + SCIE 합산) */
-  var sciCounts = { 'SCIE(SCI포함)':0, ESCI:0, SCOPUS:0, '기타':0, '비SCI':0 };
+  /* T열 기준: SCIE → SCIE, ESCI → ESCI, SCOPUS → SCOPUS, 그 외 전부 → 비SCI */
+  var sciCounts = { SCIE:0, ESCI:0, SCOPUS:0, '비SCI':0 };
   if (allData.journal && allData.journal.rows) {
     allData.journal.rows.forEach(function(row) {
       if (!hasData('journal', row)) return;
       var t = getSciType(row);
-      if (t === 'SCIE' || t === 'SCI') { sciCounts['SCIE(SCI포함)']++; }
-      else if (sciCounts[t] !== undefined) { sciCounts[t]++; }
-      else { sciCounts['기타']++; }
+      if (sciCounts[t] !== undefined) { sciCounts[t]++; }
+      else { sciCounts['비SCI']++; }
     });
   }
-  var sciOrder          = ['SCIE(SCI포함)','ESCI','SCOPUS','기타','비SCI'];
-  var sciColors         = ['#4338ca','#7e22ce','#c2410c','#6b7280','#9ca3af'];
+  var sciOrder          = ['SCIE','ESCI','SCOPUS','비SCI'];
+  var sciColors         = ['#4338ca','#7e22ce','#c2410c','#9ca3af'];
   var sciLabels = [], sciData = [], sciColorsFiltered = [];
   sciOrder.forEach(function(k, i) {
     if (sciCounts[k] > 0) { sciLabels.push(k); sciData.push(sciCounts[k]); sciColorsFiltered.push(sciColors[i]); }
