@@ -1633,13 +1633,12 @@ function exportCSV() {
       };
       break;
     case 'conference':
-      headers = ['연번','사업년도','발표구분','논문명','제1저자','공동저자','학술대회명','발표일','개최국'];
+      headers = ['연번','사업년도','논문명','제1저자','교신저자','공동저자','학술대회명','발표일','개최국'];
       rowFn = function(row, i) {
         var c = COL.conference;
-        var typeRaw = getRaw(row,c.presType);
-        var pt = (typeRaw==='01'||typeRaw==1)?'국제':(typeRaw==='02'||typeRaw==2)?'국내':'';
-        return [i+1, rowYear('conference',row)||'', pt,
+        return [i+1, rowYear('conference',row)||'',
           getVal(row,c.title)||'', getVal(row,c.firstAuthor)||'',
+          getVal(row,15)||'',  /* 교신저자 */
           getVal(row,c.coauthor)||'', getVal(row,c.confName)||'',
           formatDate(getRaw(row,c.confDate))||'', getVal(row,c.country)||''];
       };
@@ -1679,12 +1678,22 @@ function exportCSV() {
   }
 
   var csvLines = [headers];
-  rows.forEach(function(row, i) { csvLines.push(rowFn(row, i)); });
+  rows.forEach(function(row, i) {
+    var cells = rowFn(row, i);
+    /* 연번 제외 모든 필드가 비어있는 행은 제외 (빈 행 방지) */
+    if (cells.slice(1).some(function(c){ return String(c||'').trim(); })) {
+      csvLines.push(cells);
+    }
+  });
+
+  /* 연번 재부여 (빈 행 제거 후 순서 맞추기) */
+  for (var ri = 1; ri < csvLines.length; ri++) { csvLines[ri][0] = ri; }
 
   var csvStr = csvLines.map(function(cols) {
     return cols.map(function(cell) {
-      var s = String(cell == null ? '' : cell);
-      if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
+      /* 줄바꿈 문자를 공백으로 치환 → 엑셀 자동줄바꿈 방지 */
+      var s = String(cell == null ? '' : cell).replace(/[\r\n]+/g, ' ').trim();
+      if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1) {
         s = '"' + s.replace(/"/g, '""') + '"';
       }
       return s;
