@@ -201,6 +201,13 @@
       font-size:.93rem; font-weight:600; line-height:1.5;
       color:var(--text); margin-bottom:6px;
     }
+    mark.search-hl {
+      background: #fde047;
+      color: inherit;
+      border-radius: 2px;
+      padding: 0 1px;
+      font-weight: inherit;
+    }
     .list-meta {
       font-size:.79rem; color:var(--text-light);
       line-height:1.6; margin-top:3px;
@@ -1072,6 +1079,21 @@ function rowText(row) {
   return row.c.map(function(c){ return c ? String(c.v||'') : ''; }).join(' ');
 }
 
+/* ─── 검색어 하이라이트: plainText를 esc() 후 검색어 부분에 형광펜 처리 ─── */
+function hlSearch(plainText) {
+  var escaped = esc(String(plainText || ''));
+  var q = (document.getElementById('searchInput').value || '').trim();
+  if (!q) return escaped;
+  /* 정규식 특수문자 이스케이프 */
+  var safeQ = q.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  try {
+    var re = new RegExp('(' + safeQ + ')', 'gi');
+    return escaped.replace(re, '<mark class="search-hl">$1</mark>');
+  } catch(e) {
+    return escaped;
+  }
+}
+
 /* ─── Early Access 행 표시 ───────────────────────────────────────────────── */
 function markEarlyAccessRows(table) {
   if (!table || !table.rows) return;
@@ -1123,7 +1145,11 @@ function getFilteredRows(tabKey) {
   var filtered = table.rows.filter(function(row) {
     if (!hasData(tabKey, row)) return false;
     if (yearVal && String(rowYear(tabKey, row)) !== yearVal) return false;
-    if (search  && rowText(row).toLowerCase().indexOf(search) === -1) return false;
+    if (search) {
+      /* 제목 열만 검색 — 저자·학술지 등 다른 열은 제외 */
+      var titleRaw = String(getRaw(row, TITLE_COL[tabKey]) || '').toLowerCase();
+      if (titleRaw.indexOf(search) === -1) return false;
+    }
 
     if (tabKey === 'journal') {
       if (sciVal && getSciType(row) !== sciVal) return false;
@@ -1220,7 +1246,7 @@ function wrapItem(rankNum, leftBorderColor, badgesHtml, titleHtml, metaLines, ri
 
 function renderJournal(row, idx) {
   var c       = COL.journal;
-  var title   = esc(getVal(row,c.title)   || '(제목 없음)');
+  var title   = hlSearch(getVal(row,c.title)   || '(제목 없음)');
   var first   = getVal(row,c.firstAuthor) || '';
   var coauth  = getVal(row,c.coauthor)    || '';
   var corr    = getVal(row,c.corrAuthor)  || '';
@@ -1266,7 +1292,7 @@ function renderJournal(row, idx) {
 
 function renderConference(row, idx) {
   var c        = COL.conference;
-  var title    = esc(getVal(row,c.title)       || '(제목 없음)');
+  var title    = hlSearch(getVal(row,c.title)       || '(제목 없음)');
   var first    = getVal(row,c.firstAuthor)     || '';
   var coauth   = getVal(row,c.coauthor)        || '';
   var confName = getVal(row,c.confName)        || '';
@@ -1299,7 +1325,7 @@ function renderConference(row, idx) {
 
 function renderPatent(row, idx) {
   var c       = COL.patent;
-  var title   = esc(getVal(row,c.title)    || '(명칭 없음)');
+  var title   = hlSearch(getVal(row,c.title)    || '(명칭 없음)');
   var number  = getVal(row,c.number)       || '';
   var domRaw  = getRaw(row,c.domType);
   var typeRaw = getRaw(row,c.regType);
@@ -1329,7 +1355,7 @@ function renderPatent(row, idx) {
 
 function renderTransfer(row, idx) {
   var c         = COL.transfer;
-  var content   = esc(getVal(row, 27) || getVal(row, c.contract) || '(내용 없음)'); /* AB열 = 기술실시 내용 */
+  var content   = hlSearch(getVal(row, 27) || getVal(row, c.contract) || '(내용 없음)'); /* AB열 = 기술실시 내용 */
   var org       = getVal(row,c.org)       || '';
   var inventor  = getVal(row,c.inventor)  || '';
   var ipRelated = getVal(row,c.ipRelated) || '';
@@ -1353,7 +1379,7 @@ function renderTransfer(row, idx) {
 
 function renderAward(row, idx) {
   var c         = COL.award;
-  var awardName = esc(getVal(row,c.awardName) || '(수상명 없음)');
+  var awardName = hlSearch(getVal(row,c.awardName) || '(수상명 없음)');
   var org       = getVal(row,c.org)       || '';
   var reason    = getVal(row,c.reason)    || '';
   var recipient = getVal(row,c.recipient) || '';
@@ -1512,8 +1538,8 @@ function renderOverview() {
           type: 'bar',
           label: '계약 건수',
           data: trCntData,
-          backgroundColor: 'rgba(13,148,136,0.70)',
-          borderColor: '#0d9488',
+          backgroundColor: 'rgba(16,185,129,0.72)',
+          borderColor: '#10b981',
           borderWidth: 1.5,
           yAxisID: 'yCnt',
           order: 2
@@ -1569,8 +1595,8 @@ function renderOverview() {
         },
         yCnt: {
           type: 'linear', position: 'left',
-          title: { display:true, text:'계약 건수', font:{ size:11 }, color:'#0d9488' },
-          ticks: { font:{ size:10 }, stepSize:1, color:'#0d9488' },
+          title: { display:true, text:'계약 건수', font:{ size:11 }, color:'#10b981' },
+          ticks: { font:{ size:10 }, stepSize:1, color:'#10b981' },
           grid: { color:'rgba(0,0,0,0.05)' }
         },
         yAmt: {
