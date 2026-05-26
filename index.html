@@ -38,32 +38,30 @@
 
     /* ── Header ── */
     .header {
-      background: linear-gradient(135deg, #0b2e5e 0%, var(--primary-light) 100%);
+      background: linear-gradient(160deg, #050d1f 0%, #081630 55%, #0a1e40 100%);
       color: white;
-      padding: 44px 24px 34px;
+      padding: 20px 24px 16px;
       text-align: center;
       position: relative;
       overflow: hidden;
     }
-    .header::before {
-      content: ''; position: absolute; top:-60px; right:-60px;
-      width:280px; height:280px; background:rgba(255,255,255,.05); border-radius:50%;
-      pointer-events:none;
+    .header::before { content: none; }
+    .header::after  { content: none; }
+    .header-network {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      opacity: 0.55;
     }
-    .header::after {
-      content: ''; position: absolute; bottom:-80px; left:-40px;
-      width:220px; height:220px; background:rgba(255,255,255,.04); border-radius:50%;
-      pointer-events:none;
-    }
-    .header h1 { font-size:2rem; font-weight:700; letter-spacing:-.5px; margin-bottom:6px; }
-    .header p  { font-size:.95rem; opacity:.80; }
+    .header h1 { font-size:1.9rem; font-weight:700; letter-spacing:-.5px; margin-bottom:4px; }
+    .header p  { font-size:.90rem; opacity:.80; }
 
-    .stats { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:26px; }
+    .stats { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:20px; }
     .stat-card {
       background:rgba(255,255,255,.13);
       -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
-      border:1px solid rgba(255,255,255,.22); border-radius:14px;
-      padding:12px 20px; text-align:center; min-width:106px;
+      border:1px solid rgba(255,255,255,.22); border-radius:13px;
+      padding:11px 20px; text-align:center; min-width:100px;
       cursor:pointer;
       -webkit-transition:background .18s, -webkit-transform .15s;
       transition:background .18s, transform .15s;
@@ -72,9 +70,11 @@
     }
     .stat-card:hover  { background:rgba(255,255,255,.25); transform:translateY(-2px); }
     .stat-card.active { background:rgba(255,255,255,.35); border-color:rgba(255,255,255,.6); }
-    .home-btn { font-size:1rem; font-weight:700; line-height:1; padding:10px 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-    .stat-card .num   { font-size:1.6rem; font-weight:700; display:block; }
-    .stat-card .label { font-size:.73rem; opacity:.85; margin-top:2px; }
+    .home-btn { font-size:.95rem; font-weight:700; line-height:1; padding:10px 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .stat-card .num-wrap { display:block; font-size:1.5rem; font-weight:700; line-height:1.15; }
+    .stat-card .num   { font-size:1.5rem; font-weight:700; }
+    .stat-card .label { font-size:.72rem; opacity:.85; margin-top:3px; display:block; }
+    .stat-unit { font-size:.76rem; font-weight:700; opacity:.9; margin-left:0; vertical-align:baseline; }
 
     /* ── 헤더 프로필 버튼 ── */
     .header-profile-btn {
@@ -92,7 +92,7 @@
     .header-profile-btn .btn-icon { font-size:.95rem; }
 
     /* ── Main ── */
-    .main { max-width:1100px; margin:0 auto; padding:22px 16px 60px; }
+    .main { max-width:1600px; margin:0 auto; padding:16px 20px 60px; }
 
     /* ── Tabs ── */
     .tabs {
@@ -160,7 +160,47 @@
     }
 
     /* ── List container ── */
-    .list-view { display:flex; flex-direction:column; gap:8px; }
+    .list-view { display:block; }
+
+    /* ── Sticky table ── */
+    .tbl-outer {
+      overflow-x: auto; overflow-y: auto;
+      max-height: 520px;
+      border-radius: 12px;
+      border: 0.5px solid #e2e8f0;
+    }
+    .tbl-outer::-webkit-scrollbar { width:5px; height:5px; }
+    .tbl-outer::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+    .tbl-sticky { width:100%; border-collapse:separate; border-spacing:0; font-size:.82rem; }
+    .tbl-sticky thead th {
+      position:sticky; top:0; z-index:3;
+      background:#e8f0fe; color:#1a1a1a;
+      padding:8px 10px; text-align:center;
+      white-space:nowrap;
+      border-right:1px solid #c5d8f8;
+      border-bottom:1px solid #c5d8f8;
+      font-weight:500; font-size:.80rem;
+      /* box-shadow로 하단 강조선 고정 — border-collapse:collapse 버그 우회 */
+      box-shadow: inset 0 -2.5px 0 #4285f4;
+    }
+    .tbl-sticky thead th:last-child { border-right:none; }
+    .tbl-sticky tbody tr { border-bottom:0.5px solid #e2e8f0; background:#ffffff; }
+    .tbl-sticky tbody tr:last-child { border-bottom:none; }
+    .tbl-sticky tbody tr:hover { background:#eff6ff; }
+    .tbl-sticky tbody td {
+      padding:8px 10px; color:#1e293b;
+      text-align:center; vertical-align:top;
+      font-size:.82rem; border-right:0.5px solid #f1f5f9;
+    }
+    .tbl-sticky tbody td:last-child { border-right:none; }
+    .tbl-cell-clamp {
+      overflow:hidden; display:-webkit-box;
+      -webkit-line-clamp:2; -webkit-box-orient:vertical;
+      text-align:left; line-height:1.45; min-width:0;
+    }
+    .tbl-num { color:#64748b; font-size:.75rem; }
+    .tbl-doi-link { color:#1a73e8; text-decoration:none; font-size:.78rem; }
+    .tbl-doi-link:hover { text-decoration:underline; }
 
     /* ── List item ── */
     .list-item {
@@ -183,6 +223,7 @@
     .badge {
       display:inline-block; padding:2px 8px; border-radius:10px;
       font-size:.68rem; font-weight:700; letter-spacing:.3px;
+      white-space:nowrap;
     }
     .badge-sci      { background:#dbeafe; color:#1d4ed8; }
     .badge-scie     { background:#e0e7ff; color:#4338ca; }
@@ -192,10 +233,14 @@
     .badge-intl     { background:#d1fae5; color:#065f46; }
     .badge-domestic { background:#fef9c3; color:#78350f; }
     .badge-registered { background:#d1fae5; color:#065f46; }
-    .badge-applied  { background:#fef3c7; color:#92400e; }
+    .badge-applied  { background:#dbeafe; color:#1e40af; }
     .badge-foreign  { background:#ede9fe; color:#5b21b6; }
     .badge-tech     { background:#fce7f3; color:#9d174d; }
     .badge-award    { background:#fef3c7; color:#78350f; }
+    .badge-tr-통상실시 { background:#dbeafe; color:#1e40af; }
+    .badge-tr-전용실시 { background:#e0e7ff; color:#3730a3; }
+    .badge-tr-양도     { background:#d1fae5; color:#065f46; }
+    .badge-tr-기타     { background:#f3f4f6; color:#4b5563; }
     .badge-year     { background:#f1f5f9; color:#475569; }
     .list-title {
       font-size:.93rem; font-weight:600; line-height:1.5;
@@ -208,6 +253,17 @@
       padding: 0 1px;
       font-weight: inherit;
     }
+
+    /* ── 연도별 막대그래프 ── */
+    .year-chart-wrap {
+      background: var(--white);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 14px 20px 10px;
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+    #yearChart { cursor: pointer; }
     .list-meta {
       font-size:.79rem; color:var(--text-light);
       line-height:1.6; margin-top:3px;
@@ -386,8 +442,10 @@
       /* ── 통계 카드: 5개 한 줄 ── */
       .stats { flex-wrap:nowrap; gap:5px; margin-top:14px; }
       .stat-card { flex:1; min-width:0; padding:8px 4px; border-radius:10px; }
+      .stat-card .num-wrap { font-size:1.1rem; }
       .stat-card .num   { font-size:1.1rem; }
       .stat-card .label { font-size:.52rem; line-height:1.3; }
+      .stat-unit { font-size:.58rem; }
 
       /* ── 탭 바: 고정폭 + 가로 스크롤 ── */
       .tabs-outer::after { display:block; }
@@ -406,6 +464,9 @@
       .search-wrap { min-width:100%; }
       .filter-select, .search-input { width:100%; min-width:0; }
       .export-btn { width:100%; text-align:center; }
+      /* ── 연도 차트 ── */
+      .year-chart-wrap { padding:10px 10px 6px; }
+      .year-chart-hint { font-size:.72rem; }
 
       /* ── 리스트 ── */
       .list-main  { padding:11px 13px; }
@@ -521,17 +582,19 @@
 
 <!-- ── Header ── -->
 <div class="header">
+  <!-- Network/particle background canvas -->
+  <canvas class="header-network" id="headerCanvas"></canvas>
   <button class="header-profile-btn" onclick="switchTab('profile')" title="프로필 보기">
     <span class="btn-icon">👤</span> 프로필
   </button>
   <h1>김동성 교수님 연구 성과</h1>
   <div class="stats">
     <div class="stat-card home-btn" onclick="switchTab('overview')" title="홈 — 성과 개요"><span class="label" style="font-size:.85rem;font-weight:700;opacity:1;">홈</span></div>
-    <div class="stat-card" data-tab="journal"    onclick="switchTab('journal')"   ><span class="num" id="stat-journal">-</span><span class="label">논문 (저널)</span></div>
-    <div class="stat-card" data-tab="conference"  onclick="switchTab('conference')" ><span class="num" id="stat-conference">-</span><span class="label">논문 <span class="lbl-br"></span>(학술대회)</span></div>
-    <div class="stat-card" data-tab="patent"      onclick="switchTab('patent')"     ><span class="num" id="stat-patent">-</span><span class="label">특허</span></div>
-    <div class="stat-card" data-tab="transfer"    onclick="switchTab('transfer')"   ><span class="num" id="stat-transfer">-</span><span class="label">기술이전</span></div>
-    <div class="stat-card" data-tab="award"       onclick="switchTab('award')"      ><span class="num" id="stat-award">-</span><span class="label">수상</span></div>
+    <div class="stat-card" data-tab="journal"    onclick="switchTab('journal')"   ><span class="num-wrap"><span class="num" id="stat-journal">-</span><span class="stat-unit" id="unit-journal"></span></span><span class="label">논문 (저널)</span></div>
+    <div class="stat-card" data-tab="conference"  onclick="switchTab('conference')" ><span class="num-wrap"><span class="num" id="stat-conference">-</span><span class="stat-unit" id="unit-conference"></span></span><span class="label">논문 <span class="lbl-br"></span>(학술대회)</span></div>
+    <div class="stat-card" data-tab="patent"      onclick="switchTab('patent')"     ><span class="num-wrap"><span class="num" id="stat-patent">-</span><span class="stat-unit" id="unit-patent"></span></span><span class="label">특허</span></div>
+    <div class="stat-card" data-tab="transfer"    onclick="switchTab('transfer')"   ><span class="num-wrap"><span class="num" id="stat-transfer">-</span><span class="stat-unit" id="unit-transfer"></span></span><span class="label">기술이전</span></div>
+    <div class="stat-card" data-tab="award"       onclick="switchTab('award')"      ><span class="num-wrap"><span class="num" id="stat-award">-</span><span class="stat-unit" id="unit-award"></span></span><span class="label">수상</span></div>
   </div>
 </div>
 
@@ -547,9 +610,6 @@
              oninput="onSearchInput()">
       <button class="search-clear" id="searchClear" onclick="clearSearch()" title="검색어 지우기">✕</button>
     </div>
-    <select class="filter-select" id="yearSelect" onchange="saveYearAndFilter()">
-      <option value="">전체 연도</option>
-    </select>
     <!-- Journal-only filters -->
     <select class="filter-select journal-filter" id="sciSelect" onchange="applyFilters()">
       <option value="">전체 구분</option>
@@ -580,6 +640,13 @@
     </select>
     <!-- Export button -->
     <button class="export-btn" onclick="exportCSV()">📥 내보내기</button>
+  </div>
+
+  <!-- 연도별 막대그래프 -->
+  <div class="year-chart-wrap" id="yearChartWrap" style="display:none;">
+    <div style="position:relative; height:130px;">
+      <canvas id="yearChart"></canvas>
+    </div>
   </div>
 
   <div class="result-info" id="resultInfo"></div>
@@ -934,6 +1001,7 @@ var currentTab     = 'overview';
 var totalTabs      = Object.keys(TABS_CONFIG).length;
 var tabYears       = { journal:'', conference:'', patent:'', transfer:'', award:'' };
 var chartInstances = {};
+var yearChartInst  = null;
 
 /* ─── JSONP loader ───────────────────────────────────────────────────────── */
 function markSheetDone(tabKey) {
@@ -1228,7 +1296,144 @@ function getUniqueYears(tabKey) {
   return Object.keys(set).map(Number).sort(function(a,b){ return b-a; });
 }
 
-/* ─── List renderers ─────────────────────────────────────────────────────── */
+/* ─── Sticky table renderers ────────────────────────────────────────────── */
+var TABLE_HEADERS = {
+  journal:    ['번호','사업연도','SCI 구분','논문명','주저자','공동저자','교신저자','학술지명','게재일자','IF','DOI'],
+  conference: ['번호','사업연도','논문명','주저자','공동저자','교신저자','학술대회명','개최국'],
+  patent:     ['번호','사업연도','국내외','구분','출원(등록)번호','특허명','발명인','출원(등록)일'],
+  transfer:   ['번호','사업연도','기술이전 유형','계약명','계약금액(원)','기술발명자','기술실시대상기관','계약일자'],
+  award:      ['번호','사업연도','상훈명','수여기관명','수상내용','수상자','수상일자']
+};
+var TABLE_COL_WIDTHS = {
+  journal:    [40, 70, 64, 290, 110, 160, 90, 150, 78, 46, 50],
+  conference: [40, 70, 290, 110, 160, 90, 180, 80],
+  patent:     [40, 70, 56, 56, 110, 360, 150, 80],
+  transfer:   [40, 70, 90, 220, 110, 140, 180, 80],
+  award:      [40, 70, 180, 140, 360, 140, 72]
+};
+
+function makeTr(cells) {
+  return '<tr>' + cells.map(function(c, i) {
+    if (c && typeof c === 'object') return '<td>' + (c.html||'') + '</td>';
+    var s = String(c == null ? '' : c);
+    return i === 0 ? '<td class="tbl-num">' + s + '</td>' : '<td>' + s + '</td>';
+  }).join('') + '</tr>';
+}
+function clampDiv(html) {
+  return '<div class="tbl-cell-clamp">' + html + '</div>';
+}
+
+function rowJournal(row, idx) {
+  var c = COL.journal;
+  var sciType = getSciType(row);
+  var doi = getRaw(row,c.doi); var doiStr = doi ? String(doi).trim() : '';
+  var doiUrl = doiStr ? (doiStr.match(/^https?:\/\//) ? doiStr : 'https://doi.org/'+doiStr) : '';
+  var ifVal = parseFloat(getRaw(row,c.impact));
+  return makeTr([
+    idx+1,
+    getVal(row,c.year)||'',
+    { html: badge(sciType, SCI_CLS[sciType]||'other') },
+    { html: clampDiv(hlSearch(getVal(row,c.title)||'(제목 없음)')) },
+    getVal(row,c.firstAuthor)||'',
+    getVal(row,c.coauthor)||'',
+    getVal(row,c.corrAuthor)||'',
+    { html: clampDiv(esc(getVal(row,c.journalName)||'')) },
+    formatDate(getRaw(row,c.pubDate))||'',
+    isNaN(ifVal) ? '—' : ifVal.toFixed(2),
+    { html: doiUrl ? '<a class="tbl-doi-link" href="'+esc(doiUrl)+'" target="_blank">링크</a>' : '—' }
+  ]);
+}
+
+function rowConference(row, idx) {
+  var c = COL.conference;
+  return makeTr([
+    idx+1,
+    getVal(row,c.year)||'',
+    { html: clampDiv(hlSearch(getVal(row,c.title)||'(제목 없음)')) },
+    getVal(row,c.firstAuthor)||'',
+    getVal(row,c.coauthor)||'',
+    getVal(row,15)||'',
+    { html: clampDiv(esc(getVal(row,c.confName)||'')) },
+    getVal(row,c.country)||''
+  ]);
+}
+
+function rowPatent(row, idx) {
+  var c = COL.patent;
+  var domRaw = getRaw(row,c.domType); var typeRaw = getRaw(row,c.regType);
+  var domBadge  = (domRaw==='01'||domRaw==1) ? badge('국내','domestic')
+                : (domRaw==='02'||domRaw==2) ? badge('해외','foreign') : '';
+  var typeBadge = typeRaw==='등록' ? badge('등록','registered')
+                : typeRaw==='출원' ? badge('출원','applied')
+                : (typeRaw ? badge(String(typeRaw),'other') : '');
+  return makeTr([
+    idx+1,
+    getVal(row,c.year)||'',
+    { html: domBadge||'—' },
+    { html: typeBadge||'—' },
+    getVal(row,c.number)||'',
+    { html: clampDiv(hlSearch(getVal(row,c.title)||'(명칭 없음)')) },
+    getVal(row,c.inventor)||'',
+    formatDate(getRaw(row,c.regDate))||''
+  ]);
+}
+
+function rowTransfer(row, idx) {
+  var c = COL.transfer;
+  var content = hlSearch(getVal(row,27)||getVal(row,c.contract)||'(내용 없음)');
+  var rawAmt = getRaw(row,c.amount);
+  var amtStr = (rawAmt!=null&&rawAmt!=='') ? '₩'+Math.round(parseFloat(rawAmt)||0).toLocaleString('ko-KR') : '—';
+  var trType = String(getVal(row,c.status)||'').trim();
+  var trTypeBadge = trType === '통상실시' ? badge('통상실시','tr-통상실시')
+                  : trType === '전용실시' ? badge('전용실시','tr-전용실시')
+                  : trType === '양도'     ? badge('양도','tr-양도')
+                  : trType               ? badge(trType,'tr-기타')
+                  : '—';
+  return makeTr([
+    idx+1,
+    getVal(row,c.year)||'',
+    { html: trTypeBadge },
+    { html: clampDiv(content) },
+    amtStr,
+    getVal(row,c.inventor)||'',
+    { html: clampDiv(esc(getVal(row,c.org)||'')) },
+    formatDate(getRaw(row,c.signDate))||''
+  ]);
+}
+
+function rowAward(row, idx) {
+  var c = COL.award;
+  var reason = getVal(row,c.reason) || '';
+  /* "(논문" 앞에서 줄바꿈 */
+  var splitIdx = reason.search(/\s*\(논문/);
+  var reasonHtml;
+  if (splitIdx > 0) {
+    var part1 = hlSearch(reason.slice(0, splitIdx).trim());
+    var part2 = hlSearch(reason.slice(splitIdx).trim());
+    reasonHtml = '<div style="line-height:1.45;text-align:left;">'
+      + '<div>' + part1 + '</div>'
+      + '<div style="color:#1d4ed8;font-size:.78rem;margin-top:2px;">' + part2 + '</div>'
+      + '</div>';
+  } else {
+    reasonHtml = '<div style="text-align:left;line-height:1.45;">' + hlSearch(reason) + '</div>';
+  }
+  return makeTr([
+    idx+1,
+    getVal(row,c.year)||'',
+    { html: clampDiv(hlSearch(getVal(row,c.awardName)||'(수상명 없음)')) },
+    getVal(row,c.org)||'',
+    { html: reasonHtml },
+    getVal(row,c.recipient)||'',
+    formatDate(getRaw(row,c.awardDate))||''
+  ]);
+}
+
+var ROW_RENDERERS = {
+  journal: rowJournal, conference: rowConference,
+  patent: rowPatent, transfer: rowTransfer, award: rowAward
+};
+
+/* ─── Legacy card renderers (kept for reference) ────────────────────────── */
 function wrapItem(rankNum, leftBorderColor, badgesHtml, titleHtml, metaLines, rightHtml) {
   var metaHtml = metaLines.filter(Boolean).map(function(m){
     return '<div class="list-meta">'+m+'</div>';
@@ -1389,8 +1594,17 @@ function renderAward(row, idx) {
   var badgesHtml  = badge('수상','award') + (year ? badge(year+'년','year') : '');
 
   var awMetaLines = [];
-  if (org)       awMetaLines.push('‣ '+esc(org));
-  if (reason)    awMetaLines.push('‣ '+esc(reason));
+  if (org) awMetaLines.push('‣ '+esc(org));
+  if (reason) {
+    /* "(논문" 앞에서 분리 → 수상 설명 / 관련 논문제목 두 줄로 표시 */
+    var splitIdx = reason.search(/\s*\(논문/);
+    if (splitIdx > 0) {
+      awMetaLines.push('‣ ' + esc(reason.slice(0, splitIdx).trim()));
+      awMetaLines.push('‣ ' + esc(reason.slice(splitIdx).trim()));
+    } else {
+      awMetaLines.push('‣ ' + esc(reason));
+    }
+  }
   if (dateStr)   awMetaLines.push('‣ '+dateStr);
   if (recipient) awMetaLines.push('‣ 수상자: <strong>'+esc(recipient)+'</strong>');
 
@@ -1538,8 +1752,8 @@ function renderOverview() {
           type: 'bar',
           label: '계약 건수',
           data: trCntData,
-          backgroundColor: 'rgba(16,185,129,0.72)',
-          borderColor: '#10b981',
+          backgroundColor: 'rgba(28,69,135,0.80)',
+          borderColor: '#1c4587',
           borderWidth: 1.5,
           yAxisID: 'yCnt',
           order: 2
@@ -1572,7 +1786,7 @@ function renderOverview() {
         datalabels: {
           display: function(ctx) { return ctx.dataset.type === 'line'; },
           anchor: 'end', align: 'top', offset: 4,
-          color: '#b45309', font: { weight:'700', size:11 },
+          color: '#ffd966', font: { weight:'700', size:11 },
           formatter: function(v){
             return v >= 1000000 ? (v/1000000).toFixed(0)+'백만원' : v.toLocaleString()+'원';
           }
@@ -1595,8 +1809,8 @@ function renderOverview() {
         },
         yCnt: {
           type: 'linear', position: 'left',
-          title: { display:true, text:'계약 건수', font:{ size:11 }, color:'#10b981' },
-          ticks: { font:{ size:10 }, stepSize:1, color:'#10b981' },
+          title: { display:true, text:'계약 건수', font:{ size:11 }, color:'#1c4587' },
+          ticks: { font:{ size:10 }, stepSize:1, color:'#1c4587' },
           grid: { color:'rgba(0,0,0,0.05)' }
         },
         yAmt: {
@@ -1613,10 +1827,155 @@ function renderOverview() {
   });
 }
 
+/* ─── XML 이스케이프 (XLSX 생성용) ──────────────────────────────────────────── */
+function escXml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/\r/g, '').replace(/\n/g, '&#10;');
+}
+
+/* ─── 수상 탭 XLSX 내보내기 (JSZip 직접 생성 — 열 너비·자동줄바꿈 서식 포함) ── */
+function exportAwardXLSX(rows) {
+  var HEADERS   = ['연번','사업년도','수상명','수여기관','수상년월','수상사유','수상자'];
+  var COL_W     = [6, 9, 22, 18, 12, 55, 28];
+
+  /* ── 데이터 구성 ── */
+  var dataRows = [];
+  var seq = 0;
+  rows.forEach(function(row) {
+    var c = COL.award;
+    var reason = getVal(row, c.reason) || '';
+    var si2 = reason.search(/\s*\(논문/);
+    var reasonStr = si2 > 0
+      ? reason.slice(0, si2).trim() + '\n' + reason.slice(si2).trim()
+      : reason;
+    dataRows.push([++seq, rowYear('award', row)||'',
+      getVal(row, c.awardName)||'', getVal(row, c.org)||'',
+      formatDate(getRaw(row, c.awardDate))||'',
+      reasonStr, getVal(row, c.recipient)||'']);
+  });
+
+  /* ── Shared Strings ── */
+  var strings = [], strMap = {};
+  function addStr(v) {
+    var s = String(v == null ? '' : v);
+    if (!(s in strMap)) { strMap[s] = strings.length; strings.push(s); }
+    return strMap[s];
+  }
+
+  /* ── Worksheet XML ── */
+  var colsXml = '<cols>';
+  COL_W.forEach(function(w, i) {
+    colsXml += '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>';
+  });
+  colsXml += '</cols>';
+
+  var sdXml = '<sheetData>';
+  /* 헤더 행 (style 2 = 굵게 + 줄바꿈) */
+  sdXml += '<row r="1">';
+  HEADERS.forEach(function(h, ci) {
+    var col = String.fromCharCode(65 + ci);
+    sdXml += '<c r="'+col+'1" t="s" s="2"><v>'+addStr(h)+'</v></c>';
+  });
+  sdXml += '</row>';
+  /* 데이터 행 */
+  dataRows.forEach(function(cells, ri) {
+    var rn = ri + 2;
+    var hasNL = cells.some(function(v){ return String(v||'').indexOf('\n') !== -1; });
+    sdXml += '<row r="'+rn+'"'+(hasNL?' ht="45" customHeight="1"':'')+' >';
+    cells.forEach(function(val, ci) {
+      var col = String.fromCharCode(65 + ci);
+      var sVal = String(val == null ? '' : val);
+      var sIdx = sVal.indexOf('\n') !== -1 ? 1 : 0;
+      sdXml += '<c r="'+col+rn+'" t="s" s="'+sIdx+'"><v>'+addStr(sVal)+'</v></c>';
+    });
+    sdXml += '</row>';
+  });
+  sdXml += '</sheetData>';
+
+  var wsXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    colsXml + sdXml + '</worksheet>';
+
+  /* ── Shared Strings XML ── */
+  var ssXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"' +
+    ' count="'+strings.length+'" uniqueCount="'+strings.length+'">';
+  strings.forEach(function(s) {
+    ssXml += '<si><t xml:space="preserve">'+escXml(s)+'</t></si>';
+  });
+  ssXml += '</sst>';
+
+  /* ── Styles: 0=일반, 1=줄바꿈+상단정렬, 2=굵게+줄바꿈+가운데 ── */
+  var stXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<fonts>' +
+      '<font><sz val="11"/><name val="맑은 고딕"/></font>' +
+      '<font><b/><sz val="11"/><name val="맑은 고딕"/></font>' +
+    '</fonts>' +
+    '<fills>' +
+      '<fill><patternFill patternType="none"/></fill>' +
+      '<fill><patternFill patternType="gray125"/></fill>' +
+    '</fills>' +
+    '<borders><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
+    '<cellStyleXfs><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs>' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"><alignment wrapText="1" vertical="top"/></xf>' +
+      '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0"><alignment wrapText="1" vertical="center"/></xf>' +
+    '</cellXfs>' +
+    '</styleSheet>';
+
+  /* ── JSZip 패키지 조립 ── */
+  var zip = new JSZip();
+  zip.file('[Content_Types].xml',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+    '<Default Extension="xml" ContentType="application/xml"/>' +
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+    '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+    '<Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>' +
+    '</Types>');
+  zip.file('_rels/.rels',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+    '</Relationships>');
+  zip.file('xl/workbook.xml',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+    '<sheets><sheet name="수상" sheetId="1" r:id="rId1"/></sheets>' +
+    '</workbook>');
+  zip.file('xl/_rels/workbook.xml.rels',
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+    '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+    '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/>' +
+    '</Relationships>');
+  zip.file('xl/worksheets/sheet1.xml', wsXml);
+  zip.file('xl/styles.xml', stXml);
+  zip.file('xl/sharedStrings.xml', ssXml);
+
+  zip.generateAsync({ type:'blob' }).then(function(blob) {
+    var url = URL.createObjectURL(blob);
+    var a   = document.createElement('a');
+    a.href  = url;
+    a.download = '김동성교수_성과_수상.xlsx';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+}
+
 /* ─── CSV Export ─────────────────────────────────────────────────────────── */
 function exportCSV() {
   if (currentTab === 'overview' || currentTab === 'profile') return;
   var rows = getFilteredRows(currentTab);
+  /* 수상 탭은 열 너비·서식이 있는 XLSX로 내보내기 */
+  if (currentTab === 'award') { exportAwardXLSX(rows); return; }
   var headers, rowFn;
 
   switch (currentTab) {
@@ -1633,18 +1992,18 @@ function exportCSV() {
       };
       break;
     case 'conference':
-      headers = ['연번','사업년도','논문명','제1저자','교신저자','공동저자','학술대회명','발표일','개최국'];
+      headers = ['연번','사업년도','논문명','제1저자','공동저자','교신저자','학술대회명','발표일','개최국'];
       rowFn = function(row, i) {
         var c = COL.conference;
         return [i+1, rowYear('conference',row)||'',
           getVal(row,c.title)||'', getVal(row,c.firstAuthor)||'',
-          getVal(row,15)||'',  /* 교신저자 */
-          getVal(row,c.coauthor)||'', getVal(row,c.confName)||'',
+          getVal(row,c.coauthor)||'', getVal(row,15)||'',  /* 교신저자 */
+          getVal(row,c.confName)||'',
           formatDate(getRaw(row,c.confDate))||'', getVal(row,c.country)||''];
       };
       break;
     case 'patent':
-      headers = ['연번','사업연도','국내/해외','등록/출원','출원번호','발명명칭','출원일','발명인','상태'];
+      headers = ['연번','사업연도','국내/해외','등록/출원','출원번호','발명명칭','출원일','발명인'];
       rowFn = function(row, i) {
         var c = COL.patent;
         var domRaw = getRaw(row,c.domType);
@@ -1652,26 +2011,35 @@ function exportCSV() {
         return [i+1, rowYear('patent',row)||'', dom,
           getRaw(row,c.regType)||'', getVal(row,c.number)||'',
           getVal(row,c.title)||'', formatDate(getRaw(row,c.regDate))||'',
-          getVal(row,c.inventor)||'', getVal(row,c.status)||''];
+          getVal(row,c.inventor)||''];
       };
       break;
     case 'transfer':
-      headers = ['연번','사업연도','계약명','이전대상기관','계약일','계약금액'];
+      headers = ['연번','사업연도','계약명','기술발명자','계약일','계약금액','상태','대상기관'];
       rowFn = function(row, i) {
         var c = COL.transfer;
+        var rawAmt = parseFloat(String(getRaw(row,c.amount)||'').replace(/,/g,''));
+        var amtStr = isNaN(rawAmt) ? '' : '₩' + Math.round(rawAmt).toLocaleString('ko-KR');
         return [i+1, rowYear('transfer',row)||'',
-          getVal(row,c.contract)||'', getVal(row,c.org)||'',
-          formatDate(getRaw(row,c.signDate))||'', getRaw(row,c.amount)||''];
+          getVal(row,c.contract)||'', getVal(row,c.inventor)||'',
+          formatDate(getRaw(row,c.signDate))||'', amtStr,
+          getVal(row,c.status)||'', getVal(row,c.org)||''];
       };
       break;
     case 'award':
       headers = ['연번','사업년도','수상명','수여기관','수상년월','수상사유','수상자'];
       rowFn = function(row, i) {
         var c = COL.award;
+        var reason = getVal(row,c.reason) || '';
+        /* "(논문" 앞에서 분리 → \x1F 마커로 의도적 줄바꿈 표시 */
+        var splitIdx = reason.search(/\s*\(논문/);
+        var reasonStr = splitIdx > 0
+          ? reason.slice(0, splitIdx).trim() + '\x1F' + reason.slice(splitIdx).trim()
+          : reason;
         return [i+1, rowYear('award',row)||'',
           getVal(row,c.awardName)||'', getVal(row,c.org)||'',
           formatDate(getRaw(row,c.awardDate))||'',
-          getVal(row,c.reason)||'', getVal(row,c.recipient)||''];
+          reasonStr, getVal(row,c.recipient)||''];
       };
       break;
     default: return;
@@ -1691,9 +2059,13 @@ function exportCSV() {
 
   var csvStr = csvLines.map(function(cols) {
     return cols.map(function(cell) {
-      /* 줄바꿈 문자를 공백으로 치환 → 엑셀 자동줄바꿈 방지 */
-      var s = String(cell == null ? '' : cell).replace(/[\r\n]+/g, ' ').trim();
-      if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1) {
+      /* 원본 데이터 줄바꿈 → 공백 치환 (자동줄바꿈 방지) */
+      /* \x1F 마커 → 실제 \n 복원 (수상사유 의도적 두 줄) */
+      var s = String(cell == null ? '' : cell)
+                .replace(/[\r\n]+/g, ' ')
+                .replace(/\x1F/g, '\n')
+                .trim();
+      if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1) {
         s = '"' + s.replace(/"/g, '""') + '"';
       }
       return s;
@@ -1742,6 +2114,7 @@ function switchTab(tabKey, skipReset) {
     document.getElementById('listView').style.display        = 'none';
     document.getElementById('overviewSection').style.display = 'none';
     document.getElementById('profileSection').style.display  = 'block';
+    renderYearChart(null);
     return;
   }
 
@@ -1751,13 +2124,14 @@ function switchTab(tabKey, skipReset) {
     document.getElementById('listView').style.display        = 'none';
     document.getElementById('overviewSection').style.display = 'block';
     document.getElementById('profileSection').style.display  = 'none';
+    renderYearChart(null);
     renderOverview();
     return;
   }
 
   document.getElementById('filterBar').style.display       = 'flex';
   document.getElementById('resultInfo').style.display      = 'flex';
-  document.getElementById('listView').style.display        = 'flex';
+  document.getElementById('listView').style.display        = 'block';
   document.getElementById('overviewSection').style.display = 'none';
   document.getElementById('profileSection').style.display  = 'none';
 
@@ -1778,7 +2152,7 @@ function switchTab(tabKey, skipReset) {
     document.getElementById('patentDomSelect').value  = '';
     updateClearBtn();
   }
-  updateYearFilter(tabKey);
+  renderYearChart(tabKey);
   applyFilters();
 }
 
@@ -1794,37 +2168,177 @@ function clearSearch() {
   document.getElementById('searchInput').focus();
 }
 
-function updateYearFilter(tabKey) {
-  var sel   = document.getElementById('yearSelect');
-  var saved = tabYears[tabKey] || '';
-  sel.innerHTML = '<option value="">전체 연도</option>';
-  getUniqueYears(tabKey).forEach(function(y) {
-    var o = document.createElement('option');
-    o.value = y; o.textContent = y + '년';
-    sel.appendChild(o);
-  });
-  sel.value = (getUniqueYears(tabKey).indexOf(parseInt(saved)) !== -1) ? saved : '';
-}
+/* ─── 연도별 막대그래프 ─────────────────────────────────────────────────────── */
+function renderYearChart(tabKey) {
+  var wrap = document.getElementById('yearChartWrap');
+  if (!wrap) return;
+  if (!tabKey || tabKey === 'overview' || tabKey === 'profile') {
+    wrap.style.display = 'none';
+    if (yearChartInst) { yearChartInst.destroy(); yearChartInst = null; }
+    return;
+  }
+  var years = getUniqueYears(tabKey);   /* 내림차순 정렬된 연도 배열 */
+  if (!years.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
 
-function saveYearAndFilter() {
-  tabYears[currentTab] = document.getElementById('yearSelect').value;
-  applyFilters();
+  var thisYear = new Date().getFullYear();
+
+  /* 연도별 건수 */
+  var counts = years.map(function(y) {
+    var table = allData[tabKey];
+    if (!table || !table.rows) return 0;
+    return table.rows.filter(function(r) {
+      return hasData(tabKey, r) && rowYear(tabKey, r) === y;
+    }).length;
+  });
+
+  var selYear = tabYears[tabKey] ? parseInt(tabYears[tabKey]) : null;
+  var maxCnt  = counts.length ? Math.max.apply(null, counts) : 1;
+
+  /* ── index 0 = '전체' 바, index 1+ = 연도 바 ── */
+  var allLabels = ['전체'].concat(years.map(function(y) {
+    return y >= thisYear ? y + '~현재' : String(y);
+  }));
+  var allData_  = [maxCnt].concat(counts);   /* 전체 바 높이 = 최대값으로 설정 */
+
+  /* 색상: 전체 선택(selYear===null) ↔ 연도 선택 상태 */
+  var bgColors = allData_.map(function(_, idx) {
+    if (idx === 0) return selYear === null ? 'rgba(13,59,114,0.88)' : 'rgba(150,160,190,0.22)';
+    var y = years[idx - 1];
+    if (selYear === null) return 'rgba(26,92,168,0.65)';
+    return y === selYear ? 'rgba(13,59,114,0.92)' : 'rgba(26,92,168,0.18)';
+  });
+  var bdColors = allData_.map(function(_, idx) {
+    if (idx === 0) return selYear === null ? '#0d3b72' : 'rgba(150,160,190,0.35)';
+    var y = years[idx - 1];
+    if (selYear === null) return 'rgba(13,59,114,0.75)';
+    return y === selYear ? '#0d3b72' : 'rgba(26,92,168,0.25)';
+  });
+  var bdWidths = allData_.map(function(_, idx) {
+    if (idx === 0) return selYear === null ? 2.5 : 1.2;
+    var y = years[idx - 1];
+    return (selYear !== null && y === selYear) ? 2.5 : 1.2;
+  });
+
+  if (yearChartInst) { yearChartInst.destroy(); yearChartInst = null; }
+
+  var ctx = document.getElementById('yearChart').getContext('2d');
+  yearChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: allLabels,
+      datasets: [{
+        data: allData_,
+        backgroundColor: bgColors,
+        borderColor: bdColors,
+        borderWidth: bdWidths,
+        borderRadius: 5,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 22 } },   /* ① 숫자 가림 방지 여백 */
+      onClick: function(evt, elements) {
+        if (!elements || !elements.length) return;
+        var idx = elements[0].index;
+        if (idx === 0) {
+          /* 전체 바 클릭 → 전체 보기 */
+          tabYears[currentTab] = '';
+        } else {
+          var clickedYear = years[idx - 1];
+          /* 같은 연도 재클릭 → 전체 보기, 다른 연도 → 해당 연도 선택 */
+          tabYears[currentTab] = (tabYears[currentTab] && parseInt(tabYears[currentTab]) === clickedYear)
+            ? '' : String(clickedYear);
+        }
+        renderYearChart(currentTab);
+        applyFilters();
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(13,59,114,0.92)',
+          padding: 10,
+          titleFont: { size: 13, weight: '700' },
+          bodyFont:  { size: 12 },
+          callbacks: {
+            title: function(items) {
+              return items[0].dataIndex === 0 ? '전체' : items[0].label;
+            },
+            label: function(item) {
+              if (item.dataIndex === 0) return '  전체 연도 보기';
+              return '  ' + counts[item.dataIndex - 1] + '건';
+            }
+          }
+        },
+        datalabels: {
+          anchor: 'end', align: 'top', offset: 1,
+          font: { size: 10.5, weight: '700' },
+          color: function(ctx) {
+            if (ctx.dataIndex === 0) return selYear === null ? '#334155' : '#cbd5e1';
+            var y = years[ctx.dataIndex - 1];
+            return (selYear === null || y === selYear) ? '#334155' : '#cbd5e1';
+          },
+          formatter: function(v, ctx) {
+            if (ctx.dataIndex === 0) return counts.reduce(function(a,b){return a+b;},0);
+            return counts[ctx.dataIndex - 1];
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            font: function(ctx) {
+              return ctx.index === 0
+                ? { size: 11, weight: '700' }
+                : { size: 11 };
+            },
+            color: function(ctx) {
+              if (ctx.index === 0) return selYear === null ? '#0d3b72' : '#9ca3af';
+              var y = years[ctx.index - 1];
+              return (selYear === null || y === selYear) ? '#1e293b' : '#9ca3af';
+            }
+          }
+        },
+        y: { display: false, beginAtZero: true, grid: { display: false } }
+      }
+    }
+  });
 }
 
 function applyFilters() {
   if (currentTab === 'overview' || currentTab === 'profile') return;
-  var rows     = getFilteredRows(currentTab);
-  var listEl   = document.getElementById('listView');
-  var infoEl   = document.getElementById('resultInfo');
-  var renderer = RENDERERS[currentTab];
+  var rows    = getFilteredRows(currentTab);
+  var listEl  = document.getElementById('listView');
+  var infoEl  = document.getElementById('resultInfo');
 
   if (!rows.length) {
     listEl.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><p>검색 결과가 없습니다.</p></div>';
     infoEl.textContent = '';
     return;
   }
-  infoEl.textContent = '총 ' + rows.length + '건 · 최근 연도 순';
-  listEl.innerHTML = rows.map(function(r, i){ return renderer(r, i); }).join('');
+
+  var selYr = tabYears[currentTab] || '';
+  infoEl.textContent = '총 ' + rows.length + '건 · ' + (selYr ? selYr + '년' : '최근 연도 순');
+
+  var headers   = TABLE_HEADERS[currentTab] || [];
+  var colWidths = TABLE_COL_WIDTHS[currentTab] || [];
+  var rowFn     = ROW_RENDERERS[currentTab];
+
+  var colHtml = '<colgroup>' + colWidths.map(function(w){
+    return '<col style="min-width:'+w+'px;">';
+  }).join('') + '</colgroup>';
+
+  var thHtml = '<thead><tr>' + headers.map(function(h){
+    return '<th>'+esc(h)+'</th>';
+  }).join('') + '</tr></thead>';
+
+  var tbHtml = '<tbody>' + rows.map(function(r,i){ return rowFn(r,i); }).join('') + '</tbody>';
+
+  listEl.innerHTML = '<div class="tbl-outer"><table class="tbl-sticky">'
+    + colHtml + thHtml + tbHtml + '</table></div>';
 }
 
 /* ─── On load ────────────────────────────────────────────────────────────── */
@@ -1840,7 +2354,10 @@ function onAllLoaded() {
       var count = rows.length;
       var s = document.getElementById('stat-'+key);
       var t = document.getElementById('tc-'+key);
+      var STAT_UNITS = { journal:'편', conference:'편', patent:'건', transfer:'건', award:'건' };
       if (s) s.textContent = count;
+      var u = document.getElementById('unit-' + key);
+      if (u) u.textContent = STAT_UNITS[key] || '';
       if (t) t.textContent = count;
     });
   } catch(e) {}
@@ -1850,6 +2367,95 @@ function onAllLoaded() {
 
   try { switchTab(currentTab, true); } catch(e) {}
 }
+</script>
+
+<!-- ── Header network/particle animation ── -->
+<script>
+(function() {
+  var canvas = document.getElementById('headerCanvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+
+  var NODE_COUNT = 52;
+  var CONNECT_DIST = 160;
+  var nodes = [];
+
+  function resize() {
+    var header = canvas.parentElement;
+    canvas.width  = header.offsetWidth;
+    canvas.height = header.offsetHeight;
+  }
+
+  function rand(min, max) { return min + Math.random() * (max - min); }
+
+  function init() {
+    resize();
+    nodes = [];
+    for (var i = 0; i < NODE_COUNT; i++) {
+      nodes.push({
+        x:  rand(0, canvas.width),
+        y:  rand(0, canvas.height),
+        vx: rand(-0.28, 0.28),
+        vy: rand(-0.18, 0.18),
+        r:  rand(1.5, 3.2)
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    /* edges */
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        var dx = nodes[i].x - nodes[j].x;
+        var dy = nodes[i].y - nodes[j].y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < CONNECT_DIST) {
+          ctx.beginPath();
+          ctx.moveTo(nodes[i].x, nodes[i].y);
+          ctx.lineTo(nodes[j].x, nodes[j].y);
+          ctx.strokeStyle = 'rgba(255,255,255,' + (0.28 * (1 - dist / CONNECT_DIST)) + ')';
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+        }
+      }
+    }
+
+    /* nodes */
+    for (var k = 0; k < nodes.length; k++) {
+      var n = nodes[k];
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.75)';
+      ctx.fill();
+    }
+  }
+
+  function update() {
+    for (var i = 0; i < nodes.length; i++) {
+      var n = nodes[i];
+      n.x += n.vx;
+      n.y += n.vy;
+      if (n.x < 0 || n.x > canvas.width)  n.vx *= -1;
+      if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+    }
+  }
+
+  var raf;
+  function loop() {
+    update();
+    draw();
+    raf = requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('resize', function() {
+    resize();
+  });
+
+  init();
+  loop();
+})();
 </script>
 </body>
 </html>
