@@ -76,6 +76,32 @@
     .stat-card .label { font-size:.72rem; opacity:.85; margin-top:3px; display:block; }
     .stat-unit { font-size:.76rem; font-weight:700; opacity:.9; margin-left:0; vertical-align:baseline; }
 
+    /* ── 새로고침(필터 초기화) 버튼 ── */
+    .header-reset-btn {
+      background:var(--white);
+      border:1.5px solid var(--border); border-radius:9px;
+      padding:9px 13px; color:var(--text); font-size:.92rem;
+      cursor:pointer; line-height:1;
+      -webkit-transition:background .15s, border-color .15s;
+      transition:background .15s, border-color .15s;
+      display:flex; align-items:center; justify-content:center;
+      -webkit-user-select:none; user-select:none;
+      -webkit-tap-highlight-color:transparent; white-space:nowrap;
+    }
+    .header-reset-btn:hover { background:#f0f4f8; border-color:var(--primary-light); }
+    .header-reset-btn:active { transform:scale(.94); }
+
+    /* ── 기술이전 총 계약금액 ── */
+    .transfer-total-bar {
+      display:flex; align-items:center; justify-content:flex-end;
+      gap:8px; margin-top:10px; padding:10px 16px;
+      background:var(--white); border-radius:10px;
+      border:1.5px solid #c5d8f8;
+      font-size:.88rem; color:var(--text);
+    }
+    .transfer-total-bar .tt-label { color:var(--text-light); font-weight:500; }
+    .transfer-total-bar .tt-amount { font-size:1.05rem; font-weight:700; color:#1c4587; }
+
     /* ── 헤더 프로필 버튼 ── */
     .header-profile-btn {
       position:absolute; top:14px; right:16px;
@@ -241,6 +267,16 @@
     .badge-tr-전용실시 { background:#e0e7ff; color:#3730a3; }
     .badge-tr-양도     { background:#d1fae5; color:#065f46; }
     .badge-tr-기타     { background:#f3f4f6; color:#4b5563; }
+    /* 참여과제 구분 */
+    .badge-pj-국책과제 { background:#dbeafe; color:#1e40af; }
+    .badge-pj-용역과제 { background:#fef3c7; color:#78350f; }
+    .badge-pj-기타     { background:#f3f4f6; color:#4b5563; }
+    /* 참여과제 역할 */
+    .badge-pj-책임연구원 { background:#d1fae5; color:#065f46; }
+    .badge-pj-공동연구원 { background:#e0f2fe; color:#0369a1; }
+    /* 참여과제 진행상황 */
+    .badge-pj-진행중 { background:#d1fae5; color:#065f46; }
+    .badge-pj-종료   { background:#f3f4f6; color:#4b5563; }
     .badge-year     { background:#f1f5f9; color:#475569; }
     .list-title {
       font-size:.93rem; font-weight:600; line-height:1.5;
@@ -590,8 +626,8 @@
   <h1>김동성 교수님 연구 성과</h1>
   <div class="stats">
     <div class="stat-card home-btn" onclick="switchTab('overview')" title="홈 — 성과 개요"><span class="label" style="font-size:.85rem;font-weight:700;opacity:1;">홈</span></div>
-    <div class="stat-card" data-tab="journal"    onclick="switchTab('journal')"   ><span class="num-wrap"><span class="num" id="stat-journal">-</span><span class="stat-unit" id="unit-journal"></span></span><span class="label">논문 (저널)</span></div>
-    <div class="stat-card" data-tab="conference"  onclick="switchTab('conference')" ><span class="num-wrap"><span class="num" id="stat-conference">-</span><span class="stat-unit" id="unit-conference"></span></span><span class="label">논문 <span class="lbl-br"></span>(학술대회)</span></div>
+    <div class="stat-card" data-tab="project"     onclick="switchTab('project')"    ><span class="num-wrap"><span class="num" id="stat-project">-</span><span class="stat-unit" id="unit-project"></span></span><span class="label">참여과제</span></div>
+    <div class="stat-card" data-tab="journal"     onclick="switchTab('journal')"    ><span class="num-wrap"><span class="num" id="stat-journal">-</span><span class="stat-unit" id="unit-journal"></span></span><span class="label">논문 (저널)</span></div>
     <div class="stat-card" data-tab="patent"      onclick="switchTab('patent')"     ><span class="num-wrap"><span class="num" id="stat-patent">-</span><span class="stat-unit" id="unit-patent"></span></span><span class="label">특허</span></div>
     <div class="stat-card" data-tab="transfer"    onclick="switchTab('transfer')"   ><span class="num-wrap"><span class="num" id="stat-transfer">-</span><span class="stat-unit" id="unit-transfer"></span></span><span class="label">기술이전</span></div>
     <div class="stat-card" data-tab="award"       onclick="switchTab('award')"      ><span class="num-wrap"><span class="num" id="stat-award">-</span><span class="stat-unit" id="unit-award"></span></span><span class="label">수상</span></div>
@@ -627,6 +663,31 @@
       <option value="1-">IF 1 미만</option>
       <option value="none">IF 없음</option>
     </select>
+    <!-- Project-only filters -->
+    <select class="filter-select project-filter" id="pjTypeSelect" onchange="applyFilters()">
+      <option value="">전체 구분</option>
+      <option value="국책과제">국책과제</option>
+      <option value="용역과제">용역과제</option>
+    </select>
+    <select class="filter-select project-filter" id="pjRoleSelect" onchange="applyFilters()">
+      <option value="">전체 역할</option>
+      <option value="책임연구원">책임연구원</option>
+      <option value="공동연구원">공동연구원</option>
+    </select>
+
+    <select class="filter-select project-filter" id="pjStatusSelect" onchange="applyFilters()">
+      <option value="">전체 진행상황</option>
+      <option value="진행중">진행중</option>
+      <option value="종료">종료</option>
+    </select>
+    <!-- Transfer-only filters -->
+    <select class="filter-select transfer-filter" id="trTypeSelect" onchange="applyFilters()">
+      <option value="">전체 유형</option>
+      <option value="통상실시">통상실시</option>
+      <option value="전용실시">전용실시</option>
+      <option value="양도">양도</option>
+      <option value="기타">기타</option>
+    </select>
     <!-- Patent-only filters -->
     <select class="filter-select patent-filter" id="patentRegSelect" onchange="applyFilters()">
       <option value="">전체 (등록/출원)</option>
@@ -638,7 +699,8 @@
       <option value="국내">국내</option>
       <option value="해외">해외</option>
     </select>
-    <!-- Export button -->
+    <!-- Export / Reset buttons -->
+    <button class="header-reset-btn" onclick="resetAllFilters()" title="필터 전체 초기화">↺ 새로고침</button>
     <button class="export-btn" onclick="exportCSV()">📥 내보내기</button>
   </div>
 
@@ -647,10 +709,12 @@
     <div style="position:relative; height:130px;">
       <canvas id="yearChart"></canvas>
     </div>
+    <div id="yearChartNote" style="display:none; text-align:right; font-size:.72rem; color:#94a3b8; padding:2px 6px 0; margin-top:-2px;">* 참여 시작일 기준 건수</div>
   </div>
 
   <div class="result-info" id="resultInfo"></div>
   <div class="list-view"   id="listView"></div>
+  <div id="transferTotal"  style="display:none;"></div>
 
   <!-- Profile Section (hidden by default) -->
   <div id="profileSection" style="display:none;">
@@ -961,23 +1025,22 @@ try {
 var SHEET_ID = '1xnZyzu_v9DSE4WFT7RZaR_uaS8hfo3vAcrgzqBNOUM8';
 
 var TABS_CONFIG = {
+  project:    { name: '참여 과제 현황' },
   journal:    { name: '논문(저널)' },
-  conference: { name: '논문(학술대회)' },
   patent:     { name: '특허' },
   transfer:   { name: '기술이전' },
   award:      { name: '상훈' }
 };
 
 var COL = {
+  project: {
+    type:1, role:2, title:3, startDate:5, endDate:6, months:7, status:8, note:15
+  },
   journal: {
     year:2, sciType:11, journalType:19,
     title:14, firstAuthor:15, coauthor:16, corrAuthor:17,
     journalName:18, volume:20, pubDate:21, impact:24, doi:31,
     bookChapter:5
-  },
-  conference: {
-    year:2, presType:9, title:12, firstAuthor:13, coauthor:14,
-    confName:16, confDate:18, country:19, venue:20
   },
   patent: {
     year:1, domType:10, country:11, regType:12, number:14,
@@ -999,7 +1062,7 @@ var loadedCount    = 0;
 var cbCounter      = 0;
 var currentTab     = 'overview';
 var totalTabs      = Object.keys(TABS_CONFIG).length;
-var tabYears       = { journal:'', conference:'', patent:'', transfer:'', award:'' };
+var tabYears       = { project:'', journal:'', patent:'', transfer:'', award:'' };
 var chartInstances = {};
 var yearChartInst  = null;
 
@@ -1116,8 +1179,8 @@ var SCI_CLS   = { SCIE:'scie', ESCI:'esci', SCOPUS:'scopus', '비SCI':'other' };
 var SCI_COLOR = { SCI:'var(--c-sci)', SCIE:'var(--c-scie)', ESCI:'var(--c-esci)', SCOPUS:'var(--c-scopus)' };
 
 /* ─── Row helpers ────────────────────────────────────────────────────────── */
-var TITLE_COL = { journal:14, conference:12, patent:15, transfer:10, award:5 };
-var YEAR_COL  = { journal:2,  conference:2,  patent:1,  transfer:1, award:1 };
+var TITLE_COL = { project:3, journal:14, patent:15, transfer:10, award:5 };
+var YEAR_COL  = { project:5, journal:2,  patent:1,  transfer:1,  award:1 };
 
 function hasData(tabKey, row) {
   var v = getRaw(row, TITLE_COL[tabKey]);
@@ -1129,9 +1192,6 @@ function hasData(tabKey, row) {
     var bc = getRaw(row, COL.journal.bookChapter);
     if (bc === 'O' || bc === 'o') return false;
     if (row.__isEarlyAccess) return false;
-  }
-  if (tabKey === 'conference') {
-    if (row.__isUpcoming) return false;
   }
   if (tabKey === 'patent') {
     var patYear = rowYear('patent', row);
@@ -1203,12 +1263,16 @@ function dedupeTransferRows(rows) {
 function getFilteredRows(tabKey) {
   var table = allData[tabKey];
   if (!table || !table.rows) return [];
-  var search    = (document.getElementById('searchInput').value||'').toLowerCase().trim();
-  var yearVal   = tabYears[tabKey] || '';
-  var sciVal    = tabKey==='journal' ? document.getElementById('sciSelect').value        : '';
-  var ifVal     = tabKey==='journal' ? document.getElementById('ifSelect').value         : '';
-  var patRegVal = tabKey==='patent'  ? document.getElementById('patentRegSelect').value  : '';
-  var patDomVal = tabKey==='patent'  ? document.getElementById('patentDomSelect').value  : '';
+  var search       = (document.getElementById('searchInput').value||'').toLowerCase().trim();
+  var yearVal      = tabYears[tabKey] || '';
+  var sciVal       = tabKey==='journal'  ? document.getElementById('sciSelect').value          : '';
+  var ifVal        = tabKey==='journal'  ? document.getElementById('ifSelect').value           : '';
+  var patRegVal    = tabKey==='patent'   ? document.getElementById('patentRegSelect').value    : '';
+  var patDomVal    = tabKey==='patent'   ? document.getElementById('patentDomSelect').value    : '';
+  var pjType   = tabKey==='project' ? document.getElementById('pjTypeSelect').value   : '';
+  var pjRole   = tabKey==='project' ? document.getElementById('pjRoleSelect').value   : '';
+  var pjStatus = tabKey==='project' ? document.getElementById('pjStatusSelect').value : '';
+  var trTypeVal    = tabKey==='transfer' ? document.getElementById('trTypeSelect').value       : '';
 
   var filtered = table.rows.filter(function(row) {
     if (!hasData(tabKey, row)) return false;
@@ -1247,6 +1311,20 @@ function getFilteredRows(tabKey) {
         if (patDomVal === '해외' &&  isDomestic) return false;
       }
     }
+    if (tabKey === 'transfer') {
+      if (trTypeVal) {
+        var trRaw = String(getVal(row, COL.transfer.status) || '').trim();
+        var trMatch = trTypeVal === '기타'
+          ? (trRaw !== '통상실시' && trRaw !== '전용실시' && trRaw !== '양도' && trRaw !== '')
+          : (trRaw === trTypeVal);
+        if (!trMatch) return false;
+      }
+    }
+    if (tabKey === 'project') {
+      if (pjType   && String(getVal(row, COL.project.type)   || '').trim() !== pjType)   return false;
+      if (pjRole   && String(getVal(row, COL.project.role)   || '').trim() !== pjRole)   return false;
+      if (pjStatus && String(getVal(row, COL.project.status) || '').trim() !== pjStatus) return false;
+    }
     return true;
   });
 
@@ -1258,8 +1336,8 @@ function getFilteredRows(tabKey) {
   /* ① 날짜 컬럼 기반 내림차순 정렬 */
   filtered.sort(function(a, b) {
     var dateColMap = {
+      project:    COL.project.startDate,
       journal:    COL.journal.pubDate,
-      conference: COL.conference.confDate,
       patent:     COL.patent.regDate,
       transfer:   COL.transfer.signDate,
       award:      COL.award.awardDate
@@ -1298,15 +1376,15 @@ function getUniqueYears(tabKey) {
 
 /* ─── Sticky table renderers ────────────────────────────────────────────── */
 var TABLE_HEADERS = {
+  project:    ['번호','구분','역할','연구개발 과제명','참여 시작일','참여 종료일','참여개월수','진행상황','비고'],
   journal:    ['번호','사업연도','SCI 구분','논문명','주저자','공동저자','교신저자','학술지명','게재일자','IF','DOI'],
-  conference: ['번호','사업연도','논문명','주저자','공동저자','교신저자','학술대회명','개최국'],
   patent:     ['번호','사업연도','국내외','구분','출원(등록)번호','특허명','발명인','출원(등록)일'],
   transfer:   ['번호','사업연도','기술이전 유형','계약명','계약금액(원)','기술발명자','기술실시대상기관','계약일자'],
   award:      ['번호','사업연도','상훈명','수여기관명','수상내용','수상자','수상일자']
 };
 var TABLE_COL_WIDTHS = {
+  project:    [40, 90, 100, 340, 80, 80, 70, 80, 160],
   journal:    [40, 70, 64, 290, 110, 160, 90, 150, 78, 46, 50],
-  conference: [40, 70, 290, 110, 160, 90, 180, 80],
   patent:     [40, 70, 56, 56, 110, 360, 150, 80],
   transfer:   [40, 70, 90, 220, 110, 140, 180, 80],
   award:      [40, 70, 180, 140, 360, 140, 72]
@@ -1428,8 +1506,41 @@ function rowAward(row, idx) {
   ]);
 }
 
+function rowProject(row, idx) {
+  var c = COL.project;
+  var typeRaw = String(getVal(row, c.type) || '').trim();
+  var typeBadge = typeRaw === '국책과제' ? badge('국책과제', 'pj-국책과제')
+                : typeRaw === '용역과제' ? badge('용역과제', 'pj-용역과제')
+                : typeRaw              ? badge(typeRaw,    'pj-기타')
+                : '—';
+  var roleRaw = String(getVal(row, c.role) || '').trim();
+  var roleBadge = roleRaw === '책임연구원' ? badge('책임연구원', 'pj-책임연구원')
+                : roleRaw === '공동연구원' ? badge('공동연구원', 'pj-공동연구원')
+                : roleRaw                ? badge(roleRaw,       'pj-기타')
+                : '—';
+  var statusRaw = String(getVal(row, c.status) || '').trim();
+  var statusBadge = statusRaw === '진행중' ? badge('진행중', 'pj-진행중')
+                  : statusRaw === '종료'   ? badge('종료',   'pj-종료')
+                  : statusRaw             ? badge(statusRaw, 'pj-기타')
+                  : '—';
+  var noteRaw = getVal(row, c.note) || '';
+  /* 슬러시(/) 앞뒤 공백 포함해서 줄바꿈 */
+  var noteHtml = esc(noteRaw).replace(/\s*\/\s*/g, '<br>');
+  return makeTr([
+    idx + 1,
+    { html: typeBadge },
+    { html: roleBadge },
+    { html: clampDiv(hlSearch(getVal(row, c.title) || '(과제명 없음)')) },
+    formatDate(getRaw(row, c.startDate)) || '',
+    formatDate(getRaw(row, c.endDate))   || '',
+    getVal(row, c.months) || '',
+    { html: statusBadge },
+    { html: '<div style="font-size:.80rem;line-height:1.5;text-align:left;">' + noteHtml + '</div>' }
+  ]);
+}
+
 var ROW_RENDERERS = {
-  journal: rowJournal, conference: rowConference,
+  project: rowProject, journal: rowJournal,
   patent: rowPatent, transfer: rowTransfer, award: rowAward
 };
 
@@ -1612,8 +1723,8 @@ function renderAward(row, idx) {
 }
 
 var RENDERERS = {
+  project:    rowProject,
   journal:    renderJournal,
-  conference: renderConference,
   patent:     renderPatent,
   transfer:   renderTransfer,
   award:      renderAward
@@ -1630,7 +1741,7 @@ function renderOverview() {
     counts[key] = rows.length;
   });
 
-  ['journal','conference','patent','transfer','award'].forEach(function(k) {
+  ['project','journal','patent','transfer','award'].forEach(function(k) {
     var el = document.getElementById('ov-'+k);
     if (el) el.textContent = counts[k];
   });
@@ -1991,15 +2102,18 @@ function exportCSV() {
           getRaw(row,c.impact)||'', getRaw(row,c.doi)||''];
       };
       break;
-    case 'conference':
-      headers = ['연번','사업년도','논문명','제1저자','공동저자','교신저자','학술대회명','발표일','개최국'];
+    case 'project':
+      headers = ['연번','구분','역할','연구개발 과제명','참여 시작일','참여 종료일','참여개월수','진행상황','비고'];
       rowFn = function(row, i) {
-        var c = COL.conference;
-        return [i+1, rowYear('conference',row)||'',
-          getVal(row,c.title)||'', getVal(row,c.firstAuthor)||'',
-          getVal(row,c.coauthor)||'', getVal(row,15)||'',  /* 교신저자 */
-          getVal(row,c.confName)||'',
-          formatDate(getRaw(row,c.confDate))||'', getVal(row,c.country)||''];
+        var c = COL.project;
+        return [i+1,
+          getVal(row,c.type)||'', getVal(row,c.role)||'',
+          getVal(row,c.title)||'',
+          formatDate(getRaw(row,c.startDate))||'',
+          formatDate(getRaw(row,c.endDate))||'',
+          getVal(row,c.months)||'',
+          getVal(row,c.status)||'',
+          getVal(row,c.note)||''];
       };
       break;
     case 'patent':
@@ -2077,7 +2191,7 @@ function exportCSV() {
   var url  = URL.createObjectURL(blob);
   var a    = document.createElement('a');
   a.href   = url;
-  var tabNames = { journal:'저널논문', conference:'학술대회', patent:'특허', transfer:'기술이전', award:'수상' };
+  var tabNames = { project:'참여과제', journal:'저널논문', patent:'특허', transfer:'기술이전', award:'수상' };
   a.download = '김동성교수_성과_' + (tabNames[currentTab]||currentTab) + '.csv';
   document.body.appendChild(a);
   a.click();
@@ -2141,15 +2255,31 @@ function switchTab(tabKey, skipReset) {
   document.querySelectorAll('.patent-filter').forEach(function(el) {
     el.style.display = (tabKey === 'patent') ? 'inline-block' : 'none';
   });
+  document.querySelectorAll('.project-filter').forEach(function(el) {
+    el.style.display = (tabKey === 'project') ? 'inline-block' : 'none';
+  });
+  document.querySelectorAll('.transfer-filter').forEach(function(el) {
+    el.style.display = (tabKey === 'transfer') ? 'inline-block' : 'none';
+  });
+  /* 연도 차트 주석 */
+  var noteEl = document.getElementById('yearChartNote');
+  if (noteEl) noteEl.style.display = (tabKey === 'project') ? 'block' : 'none';
+  /* 기술이전 총 계약금액 박스 — 탭 전환 시 숨김 */
+  var ttEl = document.getElementById('transferTotal');
+  if (ttEl) ttEl.style.display = 'none';
 
   if (!skipReset) {
     /* 탭 전환 시 해당 탭의 연도 필터도 초기화 */
     tabYears[tabKey] = '';
-    document.getElementById('searchInput').value      = '';
-    document.getElementById('sciSelect').value        = '';
-    document.getElementById('ifSelect').value         = '';
-    document.getElementById('patentRegSelect').value  = '';
-    document.getElementById('patentDomSelect').value  = '';
+    document.getElementById('searchInput').value        = '';
+    document.getElementById('sciSelect').value          = '';
+    document.getElementById('ifSelect').value           = '';
+    document.getElementById('patentRegSelect').value    = '';
+    document.getElementById('patentDomSelect').value    = '';
+    document.getElementById('trTypeSelect').value       = '';
+    document.getElementById('pjTypeSelect').value       = '';
+    document.getElementById('pjRoleSelect').value       = '';
+    document.getElementById('pjStatusSelect').value     = '';
     updateClearBtn();
   }
   renderYearChart(tabKey);
@@ -2339,13 +2469,51 @@ function applyFilters() {
 
   listEl.innerHTML = '<div class="tbl-outer"><table class="tbl-sticky">'
     + colHtml + thHtml + tbHtml + '</table></div>';
+
+  /* ─── 기술이전: 총 계약금액 표시 ─── */
+  var ttEl = document.getElementById('transferTotal');
+  if (ttEl) {
+    if (currentTab === 'transfer') {
+      var totalAmt = 0;
+      rows.forEach(function(row) {
+        var raw = parseFloat(String(getRaw(row, COL.transfer.amount) || '').replace(/,/g,''));
+        if (!isNaN(raw)) totalAmt += raw;
+      });
+      var selYrT = tabYears['transfer'] || '';
+      var label = selYrT ? selYrT + '년 총 계약금액' : '전체 총 계약금액';
+      ttEl.innerHTML = '<div class="transfer-total-bar">'
+        + '<span class="tt-label">' + esc(label) + '</span>'
+        + '<span class="tt-amount">₩' + Math.round(totalAmt).toLocaleString('ko-KR') + ' 원</span>'
+        + '</div>';
+      ttEl.style.display = 'block';
+    } else {
+      ttEl.style.display = 'none';
+    }
+  }
+}
+
+/* ─── 전체 필터 초기화 ─────────────────────────────────────────────────────── */
+function resetAllFilters() {
+  if (currentTab === 'overview' || currentTab === 'profile') return;
+  tabYears[currentTab] = '';
+  document.getElementById('searchInput').value        = '';
+  document.getElementById('sciSelect').value          = '';
+  document.getElementById('ifSelect').value           = '';
+  document.getElementById('patentRegSelect').value    = '';
+  document.getElementById('patentDomSelect').value    = '';
+  document.getElementById('trTypeSelect').value   = '';
+  document.getElementById('pjTypeSelect').value   = '';
+  document.getElementById('pjRoleSelect').value   = '';
+  document.getElementById('pjStatusSelect').value = '';
+  updateClearBtn();
+  renderYearChart(currentTab);
+  applyFilters();
 }
 
 /* ─── On load ────────────────────────────────────────────────────────────── */
 function onAllLoaded() {
   try {
     if (allData.journal)     markEarlyAccessRows(allData.journal);
-    if (allData.conference)  markUpcomingRows(allData.conference);
     Object.keys(TABS_CONFIG).forEach(function(key) {
       var table = allData[key];
       var rows = (table && table.rows)
@@ -2354,7 +2522,7 @@ function onAllLoaded() {
       var count = rows.length;
       var s = document.getElementById('stat-'+key);
       var t = document.getElementById('tc-'+key);
-      var STAT_UNITS = { journal:'편', conference:'편', patent:'건', transfer:'건', award:'건' };
+      var STAT_UNITS = { project:'건', journal:'편', patent:'건', transfer:'건', award:'건' };
       if (s) s.textContent = count;
       var u = document.getElementById('unit-' + key);
       if (u) u.textContent = STAT_UNITS[key] || '';
