@@ -1391,7 +1391,8 @@ function getFilteredRows(tabKey) {
       patent:     COL.patent.regDate,
       transfer:   COL.transfer.signDate,
       award:      COL.award.awardDate,
-      book:       COL.book.pubDate
+      book:       COL.book.pubDate,
+      media:      COL.media.date
     };
     var dc = dateColMap[tabKey];
     function toSortKey(row) {
