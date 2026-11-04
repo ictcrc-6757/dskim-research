@@ -1631,9 +1631,14 @@ function rowConf(row, idx) {
   var ctLabel = ctRaw === '03' ? '국외학술' : ctRaw === '04' ? '국내학술' : ctRaw;
   var ctBadge = ctRaw ? badge(ctLabel, ctRaw === '03' ? 'conf-03' : ctRaw === '04' ? 'conf-04' : 'conf-etc') : '—';
   var periodRaw = String(getRaw(row, c.period) || '').trim();
-  /* YYYYMMDD-DD → YYYY.MM.DD-DD, YYYYMMDD → YYYY.MM.DD */
-  var periodStr = periodRaw.replace(/^(\d{4})(\d{2})(\d{2})(-\d{1,2})?$/, function(_, y, m, d, end) {
-    return y + '.' + m + '.' + d + (end || '');
+  /* YYYYMMDD        → YYYY.MM.DD
+     YYYYMMDD-DD    → YYYY.MM.DD-DD
+     YYYYMMDD-MMDD  → YYYY.MM.DD-MM.DD  (예: 20230528-0601 → 2023.05.28-06.01) */
+  var periodStr = periodRaw.replace(/^(\d{4})(\d{2})(\d{2})(-(\d{2})(\d{2})|-(\d{1,2}))?$/, function(_, y, m, d, _g, em, ed, ed2) {
+    var start = y + '.' + m + '.' + d;
+    if (em && ed)  return start + '-' + em + '.' + ed;   // MMDD → MM.DD
+    if (ed2)       return start + '-' + ed2;              // DD 그대로
+    return start;
   });
   return makeTr([
     idx + 1,
